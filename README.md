@@ -9,7 +9,7 @@
 </p>
 
 
-### 💬 IF YOU HAVE ANY ERORS / PROBLEMS : [Discord:] Hacker BilRoman#9637
+### 💬 IF YOU HAVE ANY ERRORS / PROBLEMS : [Discord:] Hacker BilRoman#9637
 > - So basically i cracked a lot of menus and the only problem i have is red engine i cant crack it ( Fuck red engine )
 > - If any of the fivem lua scripts dont work thats because they are outdated.
 > - There is a chance that the most of the menus are detected
