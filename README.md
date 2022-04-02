@@ -17,8 +17,8 @@
 > - How old are you ? [12]
 > - Where are you from ? [Slovakia]
 > - What roleplay servers do you play ? [Random Servers and i grief them]
-> - [Developer Log:1.1.2]
-> - -added 666menu,ped,falout
+> - [Developer Log : 1.1.2]
+> - -Added 666menu , ped , falout
 
 ***
 
