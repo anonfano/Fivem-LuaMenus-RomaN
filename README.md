@@ -14,7 +14,7 @@
 > - If any of the fivem lua scripts dont work thats because they are outdated.
 > - There is a chance that the most of the menus are detected
 > - [QAF:]
-> - How old are you ? [12]
+> - How old are you ? [13]
 > - Where are you from ? [Slovakia]
 > - What roleplay servers do you play ? [Random Servers and i grief them]
 > - [Developer Log : 1.1.2]
