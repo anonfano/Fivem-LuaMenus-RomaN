@@ -10,9 +10,7 @@
 
 
 ### 💬 IF YOU HAVE ANY ERRORS / PROBLEMS : [Discord:]Fano#1010
-> - If any of the fivem lua scripts dont work thats because they are outdated.
-> - There is a chance that the most of the menus are detected
-> - -Added 666menu , ped , falout
+> -  Most of the menus are detected/outdated
 
 ***
 
