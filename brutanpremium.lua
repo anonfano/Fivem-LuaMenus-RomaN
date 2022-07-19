@@ -1,4 +1,23 @@
+--[[
 
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  _____           _              _     __  __           _     
+  |_   _|         | |            | |   |  \/  |         | |    
+    | |  _ __  ___| |_ __ _ _ __ | |_  | \  / | ___   __| |____
+    | | | '_ \/ __| __/ _` | '_ \| __| | |\/| |/ _ \ / _` |_  /
+   _| |_| | | \__ \ || (_| | | | | |_  | |  | | (_) | (_| |/ / 
+  |_____|_| |_|___/\__\__,_|_| |_|\__| |_|  |_|\___/ \__,_/___|                                                           
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+How to use the menu ? You need a lua executor to inject it, the best is redENGINE you can buy here: www.instant-modz.com
+
+www.instant-modz.com / Buy the best FiveM Lua Executor to use this menu
+www.instant-modz.com / Buy the best FiveM Lua Executor to use this menu
+www.instant-modz.com / Buy the best FiveM Lua Executor to use this menu
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+]] print("www.instant-modz.com")
 
 
 enabled = enabled
@@ -5917,7 +5936,7 @@ for i, dA in pairs(bd) do
                     BrutanPremium.Display()
                 elseif BrutanPremium.IsMenuOpened("InfoMenu") then
                     if BrutanPremium.Button("BrutanPremium") then
-					elseif BrutanPremium.Button("https://discord.gg/8nSCR6u") then
+					elseif BrutanPremium.Button("discord.gg/ZtZMsyNnMq") then
                     end
     
                     BrutanPremium.Display()
