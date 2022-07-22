@@ -3290,7 +3290,7 @@ Citizen.CreateThread(function()
 				elseif HydroVariables.VehicleOptions.AutoPilotOptions.SelCruiseSpeedIndex == 6 then
 					HydroVariables.VehicleOptions.AutoPilotOptions.DrivingStyle = 786468 
 				end
-			elseif HydroMenu.Button("Speed",  "áŠ " .. HydroVariables.VehicleOptions.AutoPilotOptions.CruiseSpeed .. " ") then
+			elseif HydroMenu.Button("Speed",  "ᐊ " .. HydroVariables.VehicleOptions.AutoPilotOptions.CruiseSpeed .. " ") then
 			elseif HydroMenu.Button("Cancel Auto Pilot") then
 				autodriving = false
 				ClearPedTasks(PlayerPedId())
@@ -9778,3 +9778,5 @@ function TogglePointing(flag)
         StopCamPointing(cam)
     end
 end
+
+--bäärs#3150
